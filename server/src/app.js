@@ -18,6 +18,8 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/accounts', require('./routes/accounts'));
+app.use('/api/products', require('./routes/products'));
+app.use('/api/subscriptions', require('./routes/subscriptions'));
 
 // 404
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
