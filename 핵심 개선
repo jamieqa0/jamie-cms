@@ -1,0 +1,48 @@
+You are working on a monorepo CMS (Cash Management Service) project using Node.js (Express), PostgreSQL (Supabase), and React (Vite).
+
+Follow all existing architecture and conventions defined in CLAUDE.md. Do NOT introduce new frameworks or change the overall structure.
+
+Your task is to upgrade the system to be more production-like by implementing the following:
+
+1. Transaction System Enhancement
+
+* Add `status` field to transactions: 'pending' | 'success' | 'failed'
+* Add `type` field: 'debit' | 'credit'
+* Ensure all transaction-related operations follow a consistent lifecycle:
+  pending → success / failed
+
+2. Idempotency Handling
+
+* Prevent duplicate payments when the same request is sent multiple times
+* Introduce an idempotency key (header or request field)
+* Store and reuse the result if the same key is used again
+
+3. Concurrency Safety
+
+* Use database-level locking (`SELECT ... FOR UPDATE`) when modifying account balances
+* Ensure no double deduction occurs under concurrent requests
+
+4. Auto Debit Reliability
+
+* Prevent duplicate execution of scheduler jobs
+* Add a locking mechanism (e.g., DB flag or lock table) so only one job runs per day
+
+5. Failure Handling
+
+* When auto debit fails (e.g., insufficient balance), store failure reason
+* Do NOT partially update any data (must rollback بالكامل)
+
+6. Code Requirements
+
+* Use async/await only
+* Keep controller structure unchanged
+* Follow existing error response format: { "error": "message" }
+* Use DB transactions (BEGIN/COMMIT/ROLLBACK) for all balance-related operations
+
+7. Deliverables
+
+* Updated DB schema (SQL)
+* Modified backend code (controllers, scheduler, utils if needed)
+* Minimal but clear comments explaining critical logic
+
+Do not over-engineer. Keep implementation simple but production-safe.
