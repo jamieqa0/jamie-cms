@@ -19,7 +19,12 @@
       "Bash(node:*)",
       "Bash(npm test:*)",
       "Bash(ls:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Jamie-I\\\\.claude/skills/test-coverage-100-workspace/iteration-1/coverage-ci-failure-with_skill/outputs\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Jamie-I\\\\.claude/skills/test-coverage-100-workspace/iteration-1/coverage-ci-failure-without_skill/outputs\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Jamie-I\\\\.claude/skills/test-coverage-100-workspace/iteration-1/branch-coverage-gap-with_skill/outputs\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Jamie-I\\\\.claude/skills/test-coverage-100-workspace/iteration-1/branch-coverage-gap-without_skill/outputs\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\Jamie-I\\\\.claude/skills/test-coverage-100-workspace/iteration-1/scheduler-zero-coverage-with_skill/outputs\")"
     ]
   }
 }
