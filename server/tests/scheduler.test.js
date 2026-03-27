@@ -4,6 +4,20 @@ const { runAutoDebit } = require('../src/scheduler/autoDebit');
 let userId, accountId, productId, subscriptionId;
 
 beforeAll(async () => {
+  const prevUser = await pool.query(`SELECT id FROM users WHERE kakao_id = 'cron_test_kakao_777'`);
+  if (prevUser.rows.length > 0) {
+    const prevUserId = prevUser.rows[0].id;
+    const prevAccounts = await pool.query(`SELECT id FROM accounts WHERE user_id = $1`, [prevUserId]);
+    for (const acc of prevAccounts.rows) {
+      const prevSubs = await pool.query(`SELECT id FROM subscriptions WHERE account_id = $1`, [acc.id]);
+      for (const sub of prevSubs.rows) {
+        await pool.query(`DELETE FROM billing_logs WHERE subscription_id = $1`, [sub.id]);
+      }
+      await pool.query(`DELETE FROM subscriptions WHERE account_id = $1`, [acc.id]);
+      await pool.query(`DELETE FROM billing_logs WHERE account_id = $1`, [acc.id]);
+    }
+    await pool.query(`DELETE FROM accounts WHERE user_id = $1`, [prevUserId]);
+  }
   await pool.query(`DELETE FROM users WHERE kakao_id = 'cron_test_kakao_777'`);
   const user = await pool.query(
     `INSERT INTO users (kakao_id, nickname) VALUES ('cron_test_kakao_777', 'CronUser') RETURNING id`
