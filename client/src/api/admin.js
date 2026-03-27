@@ -1,0 +1,8 @@
+import api from './client';
+export const getAdminUsers = () => api.get('/admin/users');
+export const getAdminTransfers = () => api.get('/admin/transfers');
+export const getAdminProducts = () => api.get('/admin/products');
+export const getAdminProduct = (id) => api.get(`/admin/products/${id}`);
+export const createProduct = (data) => api.post('/admin/products', data);
+export const updateProduct = (id, data) => api.put(`/admin/products/${id}`, data);
+export const deleteProduct = (id) => api.delete(`/admin/products/${id}`);
