@@ -5,12 +5,21 @@ const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../ut
 const kakaoLogin = (req, res) => {
   const { KAKAO_CLIENT_ID, KAKAO_REDIRECT_URI } = process.env;
   const url = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${KAKAO_REDIRECT_URI}&response_type=code`;
+  console.log('--- REDIRECTING TO KAKAO ---');
+  console.log('URL:', url);
+  if (!KAKAO_CLIENT_ID || !KAKAO_REDIRECT_URI) {
+    console.error('ERROR: KAKAO_CLIENT_ID or KAKAO_REDIRECT_URI is missing!');
+  }
   res.redirect(url);
 };
 
 const kakaoCallback = async (req, res) => {
   const { code } = req.query;
   const CLIENT_URL = process.env.CLIENT_URL;
+  console.log('--- DEBUG INFO ---');
+  console.log('KAKAO_CLIENT_ID:', process.env.KAKAO_CLIENT_ID);
+  console.log('KAKAO_REDIRECT_URI:', process.env.KAKAO_REDIRECT_URI);
+  console.log('------------------');
   try {
     const tokenRes = await axios.post('https://kauth.kakao.com/oauth/token', null, {
       params: {
@@ -37,6 +46,9 @@ const kakaoCallback = async (req, res) => {
       [kakaoId, nickname, email]
     );
     const user = result.rows[0];
+    console.log('--- DB INSERT SUCCESS ---');
+    console.log('User id:', user.id);
+    console.log('-------------------------');
 
     const payload = { userId: user.id, role: user.role };
     const accessToken = signAccessToken(payload);
@@ -57,7 +69,11 @@ const kakaoCallback = async (req, res) => {
 
     res.redirect(`${CLIENT_URL}/auth/callback?code=${tempCode}`);
   } catch (err) {
-    console.error('Kakao callback error:', err.message);
+    if (err.response) {
+      console.error('Kakao auth error details:', err.response.data);
+    } else {
+      console.error('Kakao auth error:', err.message);
+    }
     res.redirect(`${CLIENT_URL}?error=login_failed`);
   }
 };

@@ -1,7 +1,5 @@
 const { Pool } = require('pg');
 
-// env.js는 환경변수 미설정 시 에러를 던지므로,
-// 테스트 환경에서는 globalSetup이 먼저 dotenv를 로드한 뒤 이 파일이 require됩니다.
 const DATABASE_URL = process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
@@ -10,11 +8,15 @@ if (!DATABASE_URL) {
 
 const pool = new Pool({
   connectionString: DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false },
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
 pool.on('error', (err) => {
-  console.error('DB pool error:', err);
+  console.error('--- DB POOL ERROR ---');
+  console.error(err);
 });
 
 module.exports = pool;
