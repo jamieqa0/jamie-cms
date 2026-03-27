@@ -1,0 +1,10 @@
+const router = require('express').Router();
+const auth = require('../middleware/authenticate');
+const c = require('../controllers/accountsController');
+router.get('/', auth, c.getAccounts);
+router.post('/', auth, c.createAccount);
+router.get('/:id', auth, c.getAccount);
+router.post('/:id/deposit', auth, c.deposit);
+router.post('/:id/withdraw', auth, c.withdraw);
+router.delete('/:id', auth, c.deleteAccount);
+module.exports = router;

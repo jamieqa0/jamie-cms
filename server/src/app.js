@@ -16,6 +16,8 @@ app.use(express.json());
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/accounts', require('./routes/accounts'));
 
 // 404
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
