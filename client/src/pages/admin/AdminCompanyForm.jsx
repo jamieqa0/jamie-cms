@@ -16,15 +16,9 @@ export default function AdminCompanyForm() {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
-        options: { data: { name: form.nickname } },
+        options: { data: { name: form.nickname, role: 'company' } },
       });
       if (signUpError) throw signUpError;
-
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ role: 'company', nickname: form.nickname })
-        .eq('id', data.user.id);
-      if (updateError) throw updateError;
 
       const { error: companyError } = await supabase
         .from('companies')
