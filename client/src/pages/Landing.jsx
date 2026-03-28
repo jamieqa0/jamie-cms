@@ -4,16 +4,20 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 
 export default function Landing() {
-  const { session } = useAuthStore();
+  const { session, user, initializing } = useAuthStore();
   const navigate = useNavigate();
   const [devEmail, setDevEmail] = useState('');
   const [devPassword, setDevPassword] = useState('');
   const [devError, setDevError] = useState('');
+  const [devLoading, setDevLoading] = useState(false);
   const [showDev, setShowDev] = useState(false);
 
   useEffect(() => {
-    if (session) navigate('/dashboard');
-  }, [session, navigate]);
+    if (initializing || !session || !user) return;
+    if (user.role === 'admin') navigate('/admin');
+    else if (user.role === 'company') navigate('/company');
+    else navigate('/dashboard');
+  }, [initializing, session, user, navigate]);
 
   const handleKakaoLogin = async () => {
     await supabase.auth.signInWithOAuth({
@@ -29,11 +33,27 @@ export default function Landing() {
   const handleDevLogin = async (e) => {
     e.preventDefault();
     setDevError('');
-    const { error } = await supabase.auth.signInWithPassword({
-      email: devEmail,
-      password: devPassword,
-    });
-    if (error) setDevError(error.message);
+    setDevLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: devEmail,
+        password: devPassword,
+      });
+      if (error) { setDevError(error.message); return; }
+      if (!data?.user) { setDevError('유저 정보 없음'); return; }
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+      if (userData?.role === 'admin') navigate('/admin');
+      else if (userData?.role === 'company') navigate('/company');
+      else navigate('/dashboard');
+    } catch (err) {
+      setDevError(err.message || '로그인 중 오류가 발생했습니다.');
+    } finally {
+      setDevLoading(false);
+    }
   };
 
   return (
@@ -75,9 +95,10 @@ export default function Landing() {
               {devError && <p className="text-red-500 text-xs">{devError}</p>}
               <button
                 type="submit"
-                className="w-full bg-slate-700 text-white rounded-lg py-2 text-sm hover:bg-slate-800 transition"
+                disabled={devLoading}
+                className="w-full bg-slate-700 text-white rounded-lg py-2 text-sm hover:bg-slate-800 transition disabled:opacity-50"
               >
-                로그인
+                {devLoading ? '로그인 중...' : '로그인'}
               </button>
             </form>
           )}
