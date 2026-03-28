@@ -6,7 +6,7 @@ RETURNS JSON LANGUAGE plpgsql AS $func$
 DECLARE
   v_total   INT;
   v_success INT;
-  v_amount  NUMERIC;
+  v_amount  BIGINT;
   v_fail    INT;
 BEGIN
   SELECT COUNT(*) INTO v_total
@@ -47,7 +47,7 @@ CREATE OR REPLACE FUNCTION get_company_transfers(p_company_id UUID)
 RETURNS TABLE (
   id            UUID,
   status        VARCHAR,
-  amount        NUMERIC,
+  amount        BIGINT,
   executed_at   TIMESTAMPTZ,
   reason        TEXT,
   product_name  VARCHAR,
@@ -77,7 +77,7 @@ $func$;
 CREATE OR REPLACE FUNCTION get_company_unpaid(p_company_id UUID)
 RETURNS TABLE (
   id              UUID,
-  amount          NUMERIC,
+  amount          BIGINT,
   executed_at     TIMESTAMPTZ,
   reason          TEXT,
   product_name    VARCHAR,

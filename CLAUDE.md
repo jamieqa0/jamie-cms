@@ -22,8 +22,9 @@ npm run lint       # ESLint
 
 Edge Function 배포:
 ```bash
-npx supabase functions deploy auto-debit
+npx supabase functions deploy auto-debit --no-verify-jwt
 ```
+`--no-verify-jwt` 필수 — 없으면 게이트웨이가 JWT를 먼저 가로채서 함수 코드에 도달하기 전에 401 반환.
 
 ## Environment Variables (`client/.env`)
 
@@ -136,6 +137,10 @@ await supabase.auth.setSession({ access_token: adminSession.access_token, refres
 - `accounts.name` NOT NULL — 계좌 생성 시 반드시 name 포함
 - `billing_day` 1~28 CHECK 제약 (29~31 설정 불가)
 - `accounts.balance` >= 0 CHECK (음수 불가)
+- `billing_logs` 컬럼명: 날짜는 `executed_at` (`billed_at` 아님)
+- RPC `RETURNS TABLE` 선언 시 타입을 DB 실제 타입과 정확히 맞춰야 함. `billing_logs.amount`는 `BIGINT`, 문자열 컬럼은 `VARCHAR` (TEXT 아님), `reason`도 `VARCHAR`. 타입 불일치 시 `CREATE OR REPLACE` 불가 — `DROP FUNCTION` 후 재생성 필요
+- `run_auto_debit`은 `집금 계좌(type='collection')`가 없으면 즉시 EXCEPTION. 초기 세팅 시 반드시 집금 계좌 Seed 필요
+- 자동이체 시연 버튼: `billing_day` 1~28 제약으로 오늘 날짜(29~31일)로 실행 불가. 어드민 대시보드에서 날짜 직접 입력 후 실행
 
 ## 계정 관리
 
