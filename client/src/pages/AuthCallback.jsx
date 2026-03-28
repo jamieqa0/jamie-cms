@@ -2,6 +2,23 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
+async function getRedirectPath(userId) {
+  // 동의 페이지에서 카카오 로그인한 경우 동의 페이지로 복귀
+  const consentToken = sessionStorage.getItem('consentToken');
+  if (consentToken) {
+    sessionStorage.removeItem('consentToken');
+    return `/consent/${consentToken}`;
+  }
+  const { data } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', userId)
+    .single();
+  if (data?.role === 'admin') return '/admin';
+  if (data?.role === 'company') return '/company';
+  return '/dashboard';
+}
+
 export default function AuthCallback() {
   const navigate = useNavigate();
 
@@ -24,7 +41,8 @@ export default function AuthCallback() {
           console.error('Exchange error:', exchangeError.message);
           navigate('/');
         } else if (data.session) {
-          navigate('/dashboard');
+          const path = await getRedirectPath(data.session.user.id);
+          navigate(path);
         } else {
           navigate('/');
         }
@@ -34,7 +52,8 @@ export default function AuthCallback() {
       // hash flow fallback
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate('/dashboard');
+        const path = await getRedirectPath(session.user.id);
+        navigate(path);
       } else {
         navigate('/');
       }

@@ -16,24 +16,40 @@ export default function ConsentPage() {
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
 
+  // 동의 요청 정보 로드 (로그인 여부 무관)
   useEffect(() => {
     if (initializing) return;
-    if (!session) {
-      navigate(`/?redirect=/consent/${token}`, { replace: true });
-    }
-  }, [initializing, session, token, navigate]);
+    getConsentRequest(token)
+      .then(setRequest)
+      .catch(() => setError('유효하지 않은 동의 요청입니다.'))
+      .finally(() => setLoading(false));
+  }, [initializing, token]);
 
+  // 로그인 후 계좌 목록 로드
   useEffect(() => {
     if (!session || !user) return;
-    Promise.all([
-      getConsentRequest(token),
-      supabase.from('accounts').select('id, balance').eq('user_id', user.id).eq('type', 'personal'),
-    ]).then(([req, { data: accs }]) => {
-      setRequest(req);
-      setAccounts(accs ?? []);
-      if (accs?.length > 0) setSelectedAccount(accs[0].id);
-    }).catch(() => setError('요청 정보를 불러올 수 없습니다.')).finally(() => setLoading(false));
-  }, [session, user, token]);
+    supabase
+      .from('accounts')
+      .select('id, balance')
+      .eq('user_id', user.id)
+      .eq('type', 'personal')
+      .then(({ data }) => {
+        setAccounts(data ?? []);
+        if (data?.length > 0) setSelectedAccount(data[0].id);
+      });
+  }, [session, user]);
+
+  const handleKakaoLogin = () => {
+    sessionStorage.setItem('consentToken', token);
+    supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        scopes: 'profile_nickname profile_image',
+        queryParams: { scope: 'profile_nickname profile_image' },
+      },
+    });
+  };
 
   const handleAccept = async () => {
     if (!selectedAccount) { setError('출금 계좌를 선택해주세요.'); return; }
@@ -53,6 +69,18 @@ export default function ConsentPage() {
     return <div className="min-h-screen flex items-center justify-center text-slate-500">로딩 중...</div>;
   }
 
+  if (error && !request) {
+    return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+  }
+
+  if (request?.status !== 'pending') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <p className="text-slate-500">이미 처리된 동의 요청입니다.</p>
+      </div>
+    );
+  }
+
   if (done) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -60,26 +88,12 @@ export default function ConsentPage() {
           <div className="text-4xl">✅</div>
           <h2 className="text-xl font-bold text-slate-900">동의 완료</h2>
           <p className="text-slate-500 text-sm">자동이체 구독이 시작되었습니다.</p>
-          <button onClick={() => navigate('/subscriptions')}
-            className="w-full bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-700 transition">
+          <button
+            onClick={() => navigate('/subscriptions')}
+            className="w-full bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-700 transition"
+          >
             구독 내역 보기
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (error && !request) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>
-    );
-  }
-
-  if (request?.status !== 'pending') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center p-8">
-          <p className="text-slate-500">이미 처리된 동의 요청입니다.</p>
         </div>
       </div>
     );
@@ -88,18 +102,20 @@ export default function ConsentPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4">
-          <h1 className="text-xl font-bold text-slate-900">자동이체 동의</h1>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between py-2 border-b border-slate-50">
+
+        {/* 동의 정보 카드 — 로그인 여부 무관하게 항상 표시 */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-3">
+          <h1 className="text-lg font-bold text-slate-900">자동이체 동의 요청</h1>
+          <div className="text-sm divide-y divide-slate-50">
+            <div className="flex justify-between py-2">
               <span className="text-slate-500">업체명</span>
               <span className="font-medium text-slate-900">{request?.users?.nickname}</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-slate-50">
+            <div className="flex justify-between py-2">
               <span className="text-slate-500">상품명</span>
               <span className="font-medium text-slate-900">{request?.products?.name}</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-slate-50">
+            <div className="flex justify-between py-2">
               <span className="text-slate-500">결제 금액</span>
               <span className="font-bold text-slate-900">{Number(request?.products?.amount).toLocaleString()}원</span>
             </div>
@@ -108,13 +124,33 @@ export default function ConsentPage() {
               <span className="font-medium text-slate-900">매월 {request?.products?.billing_day}일</span>
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">출금 계좌 선택</label>
+        </div>
+
+        {/* 비로그인: 카카오 로그인 유도 */}
+        {!session && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-3">
+            <p className="text-sm text-slate-600 text-center">동의하려면 먼저 로그인해주세요.</p>
+            <button
+              onClick={handleKakaoLogin}
+              className="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition"
+            >
+              카카오로 로그인하고 동의하기
+            </button>
+          </div>
+        )}
+
+        {/* 로그인 후: 계좌 선택 + 동의 버튼 */}
+        {session && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-3">
+            <p className="text-sm font-medium text-slate-700">출금 계좌 선택</p>
             {accounts.length === 0 ? (
               <p className="text-sm text-red-500">등록된 계좌가 없습니다. 먼저 계좌를 등록해주세요.</p>
             ) : (
-              <select value={selectedAccount} onChange={e => setSelectedAccount(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <select
+                value={selectedAccount}
+                onChange={e => setSelectedAccount(e.target.value)}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
                 {accounts.map(a => (
                   <option key={a.id} value={a.id}>
                     계좌 ({Number(a.balance).toLocaleString()}원)
@@ -122,19 +158,19 @@ export default function ConsentPage() {
                 ))}
               </select>
             )}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+            <button
+              onClick={handleAccept}
+              disabled={submitting || accounts.length === 0}
+              className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition disabled:opacity-50"
+            >
+              {submitting ? '처리 중...' : '동의하고 구독 시작'}
+            </button>
+            <p className="text-xs text-slate-400 text-center">
+              동의 시 매월 {request?.products?.billing_day}일에 자동이체가 실행됩니다.
+            </p>
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          <button
-            onClick={handleAccept}
-            disabled={submitting || accounts.length === 0}
-            className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition disabled:opacity-50"
-          >
-            {submitting ? '처리 중...' : '동의하고 구독 시작'}
-          </button>
-          <p className="text-xs text-slate-400 text-center">
-            동의 시 매월 {request?.products?.billing_day}일에 자동이체가 실행됩니다.
-          </p>
-        </div>
+        )}
       </div>
     </div>
   );

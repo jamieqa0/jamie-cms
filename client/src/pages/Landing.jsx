@@ -72,11 +72,11 @@ export default function Landing() {
 
         {/* 관리자 / 업체: 이메일 로그인 */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-3">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">관리자 · 업체</p>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">계정 로그인</p>
           <form onSubmit={handleEmailLogin} className="space-y-2">
             <input
               type="email"
-              placeholder="이메일"
+              placeholder="example@jamie.com"
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -96,7 +96,7 @@ export default function Landing() {
               disabled={loading}
               className="w-full bg-slate-800 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-slate-900 transition disabled:opacity-50"
             >
-              {loading ? '로그인 중...' : '이메일로 로그인'}
+              {loading ? '로그인 중...' : '로그인'}
             </button>
           </form>
         </div>
