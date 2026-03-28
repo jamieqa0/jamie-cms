@@ -1,6 +1,6 @@
 const axios = require('axios');
 const pool = require('../config/db');
-const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../utils/jwt');
+const { signAccessToken, signRefreshToken, verifyRefreshToken, REFRESH_TOKEN_TTL_MS } = require('../utils/jwt');
 
 const kakaoLogin = (req, res) => {
   const { KAKAO_CLIENT_ID, KAKAO_REDIRECT_URI } = process.env;
@@ -46,7 +46,7 @@ const kakaoCallback = async (req, res) => {
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
 
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
     await pool.query(
       `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)
        ON CONFLICT (token) DO UPDATE SET user_id = $1, expires_at = $3`,
@@ -96,7 +96,7 @@ const refresh = async (req, res) => {
 
     const newAccessToken = signAccessToken({ userId: decoded.userId, role: decoded.role });
     const newRefreshToken = signRefreshToken({ userId: decoded.userId, role: decoded.role });
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
 
     const client = await pool.connect();
     try {
@@ -114,6 +114,8 @@ const refresh = async (req, res) => {
       client.release();
     }
 
+    // Known: if the transaction commits but res.json fails (network error),
+    // the client loses both tokens. Client should re-authenticate in that case.
     res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
   } catch (err) {
     res.status(401).json({ error: 'Invalid refresh token' });
@@ -122,10 +124,15 @@ const refresh = async (req, res) => {
 
 const logout = async (req, res) => {
   const { refreshToken } = req.body;
-  if (refreshToken) {
-    await pool.query(`DELETE FROM refresh_tokens WHERE token = $1`, [refreshToken]);
+  try {
+    if (refreshToken) {
+      await pool.query(`DELETE FROM refresh_tokens WHERE token = $1`, [refreshToken]);
+    }
+    res.json({ message: 'Logged out' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
-  res.json({ message: 'Logged out' });
 };
 
 const devLogin = async (req, res) => {

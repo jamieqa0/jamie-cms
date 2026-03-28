@@ -1,11 +1,12 @@
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
+
+const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 const signAccessToken = (payload) =>
   jwt.sign(payload, process.env.JWT_ACCESS_SECRET, { expiresIn: '15m' });
 
 const signRefreshToken = (payload) =>
-  jwt.sign({ ...payload, jti: crypto.randomBytes(16).toString('hex') }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 
 const verifyAccessToken = (token) =>
   jwt.verify(token, process.env.JWT_ACCESS_SECRET);
@@ -13,4 +14,4 @@ const verifyAccessToken = (token) =>
 const verifyRefreshToken = (token) =>
   jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 
-module.exports = { signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken };
+module.exports = { signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken, REFRESH_TOKEN_TTL_MS };
