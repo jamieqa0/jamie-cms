@@ -22,14 +22,18 @@ export default function AdminCompanyForm() {
 
       const { error: updateError } = await supabase
         .from('users')
-        .update({
-          role: 'company',
-          nickname: form.nickname,
-          industry: form.industry || null,
-          commission_rate: form.commission_rate !== '' ? Number(form.commission_rate) : null,
-        })
+        .update({ role: 'company', nickname: form.nickname })
         .eq('id', data.user.id);
       if (updateError) throw updateError;
+
+      const { error: companyError } = await supabase
+        .from('companies')
+        .insert({
+          user_id: data.user.id,
+          industry: form.industry || null,
+          commission_rate: form.commission_rate !== '' ? Number(form.commission_rate) : null,
+        });
+      if (companyError) throw companyError;
 
       navigate('/admin/companies');
     } catch (err) {

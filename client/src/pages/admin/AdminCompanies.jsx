@@ -8,7 +8,7 @@ export default function AdminCompanies() {
   useEffect(() => {
     supabase
       .from('users')
-      .select('id, nickname, email, industry, commission_rate, created_at')
+      .select('id, nickname, email, created_at, companies(industry, commission_rate)')
       .eq('role', 'company')
       .order('created_at', { ascending: false })
       .then(({ data }) => setCompanies(data ?? []));
@@ -43,8 +43,8 @@ export default function AdminCompanies() {
             {companies.map(c => (
               <tr key={c.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50">
                 <td className="px-5 py-3 font-medium text-slate-900">{c.nickname}</td>
-                <td className="px-5 py-3 text-slate-500">{c.industry || '-'}</td>
-                <td className="px-5 py-3 text-slate-700">{c.commission_rate != null ? `${c.commission_rate}%` : '-'}</td>
+                <td className="px-5 py-3 text-slate-500">{c.companies?.industry || '-'}</td>
+                <td className="px-5 py-3 text-slate-700">{c.companies?.commission_rate != null ? `${c.companies.commission_rate}%` : '-'}</td>
                 <td className="px-5 py-3 text-slate-500">{c.email}</td>
                 <td className="px-5 py-3 text-slate-400">{new Date(c.created_at).toLocaleDateString('ko-KR')}</td>
               </tr>
