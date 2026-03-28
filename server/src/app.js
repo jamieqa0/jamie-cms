@@ -3,6 +3,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 
 require('dotenv').config();
+require('./config/env');
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 const app = express();
