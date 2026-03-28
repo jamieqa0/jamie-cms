@@ -55,9 +55,11 @@ const kakaoCallback = async (req, res) => {
 
     const crypto = require('crypto');
     const tempCode = crypto.randomBytes(16).toString('hex');
-    global.authCodes = global.authCodes || new Map();
-    global.authCodes.set(tempCode, { accessToken, refreshToken });
-    setTimeout(() => global.authCodes.delete(tempCode), 30000);
+    const codeExpiresAt = new Date(Date.now() + 30000);
+    await pool.query(
+      `INSERT INTO auth_codes (code, access_token, refresh_token, expires_at) VALUES ($1, $2, $3, $4)`,
+      [tempCode, accessToken, refreshToken, codeExpiresAt]
+    );
 
     res.redirect(`${CLIENT_URL}/auth/callback?code=${tempCode}`);
   } catch (err) {
@@ -69,13 +71,15 @@ const kakaoCallback = async (req, res) => {
 const exchangeToken = async (req, res) => {
   const { code } = req.query;
   try {
-    if (global.authCodes && global.authCodes.has(code)) {
-      const tokens = global.authCodes.get(code);
-      global.authCodes.delete(code);
-      return res.json(tokens);
-    }
-    res.status(401).json({ error: 'Invalid or expired code' });
+    const result = await pool.query(
+      `DELETE FROM auth_codes WHERE code = $1 AND expires_at > NOW() RETURNING access_token, refresh_token`,
+      [code]
+    );
+    if (!result.rows[0]) return res.status(401).json({ error: 'Invalid or expired code' });
+    const { access_token: accessToken, refresh_token: refreshToken } = result.rows[0];
+    res.json({ accessToken, refreshToken });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Exchange error' });
   }
 };
@@ -153,9 +157,11 @@ const devLogin = async (req, res) => {
 
     const crypto = require('crypto');
     const tempCode = crypto.randomBytes(16).toString('hex');
-    global.authCodes = global.authCodes || new Map();
-    global.authCodes.set(tempCode, { accessToken, refreshToken });
-    setTimeout(() => global.authCodes.delete(tempCode), 60000);
+    const codeExpiresAt = new Date(Date.now() + 60000);
+    await pool.query(
+      `INSERT INTO auth_codes (code, access_token, refresh_token, expires_at) VALUES ($1, $2, $3, $4)`,
+      [tempCode, accessToken, refreshToken, codeExpiresAt]
+    );
 
     console.log('--- DEV LOGIN SUCCESS (REAL JWT) ---');
     res.redirect(`${CLIENT_URL}/auth/callback?code=${tempCode}`);

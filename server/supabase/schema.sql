@@ -68,3 +68,10 @@ CREATE TABLE refresh_tokens (
   revoked BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE auth_codes (
+  code VARCHAR PRIMARY KEY,
+  access_token TEXT NOT NULL,
+  refresh_token TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL
+);
