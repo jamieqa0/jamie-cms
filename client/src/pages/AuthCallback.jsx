@@ -1,26 +1,37 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
+import { supabase } from '../lib/supabase';
 
 export default function AuthCallback() {
-  const { session } = useAuthStore();
   const navigate = useNavigate();
-  const redirected = useRef(false);
 
   useEffect(() => {
-    if (redirected.current) return;
-    if (session) {
-      redirected.current = true;
-      navigate('/dashboard');
-    }
-  }, [session, navigate]);
+    // Supabase가 URL 해시에서 세션을 처리할 때까지 대기
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        subscription.unsubscribe();
+        navigate('/dashboard');
+      }
+    });
 
-  // 세션이 없는 채로 5초 경과 시 홈으로
-  useEffect(() => {
+    // 이미 세션이 있는 경우 바로 이동
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        subscription.unsubscribe();
+        navigate('/dashboard');
+      }
+    });
+
+    // 10초 타임아웃
     const timer = setTimeout(() => {
-      if (!redirected.current) navigate('/');
-    }, 5000);
-    return () => clearTimeout(timer);
+      subscription.unsubscribe();
+      navigate('/');
+    }, 10000);
+
+    return () => {
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
