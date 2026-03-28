@@ -34,16 +34,9 @@ export default function Landing() {
     setError('');
     setLoading(true);
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-      if (signInError) { setError(signInError.message); return; }
-      const { data: userData } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', data.user.id)
-        .single();
-      if (userData?.role === 'admin') navigate('/admin');
-      else if (userData?.role === 'company') navigate('/company');
-      else navigate('/dashboard');
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) setError(signInError.message);
+      // navigate는 onAuthStateChange → authStore → useEffect가 처리
     } catch (err) {
       setError(err.message || '로그인 중 오류가 발생했습니다.');
     } finally {
