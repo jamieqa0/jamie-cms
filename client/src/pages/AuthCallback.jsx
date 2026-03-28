@@ -6,32 +6,41 @@ export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Supabase가 URL 해시에서 세션을 처리할 때까지 대기
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        subscription.unsubscribe();
-        navigate('/dashboard');
-      }
-    });
+    const handleCallback = async () => {
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get('code');
+      const error = url.searchParams.get('error');
 
-    // 이미 세션이 있는 경우 바로 이동
-    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (error) {
+        console.error('OAuth error:', error);
+        navigate('/');
+        return;
+      }
+
+      if (code) {
+        // PKCE flow: code를 세션으로 교환
+        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          console.error('Exchange error:', exchangeError.message);
+          navigate('/');
+        } else if (data.session) {
+          navigate('/dashboard');
+        } else {
+          navigate('/');
+        }
+        return;
+      }
+
+      // hash flow fallback
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        subscription.unsubscribe();
         navigate('/dashboard');
+      } else {
+        navigate('/');
       }
-    });
-
-    // 10초 타임아웃
-    const timer = setTimeout(() => {
-      subscription.unsubscribe();
-      navigate('/');
-    }, 10000);
-
-    return () => {
-      clearTimeout(timer);
-      subscription.unsubscribe();
     };
+
+    handleCallback();
   }, [navigate]);
 
   return (
