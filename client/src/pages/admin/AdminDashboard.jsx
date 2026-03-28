@@ -10,7 +10,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     Promise.all([getAdminUsers(), getAdminProducts(), getAdminTransfers()]).then(
       ([u, p, t]) => setCounts({ users: u.data.length, products: p.data.length, transfers: t.data.length })
-    );
+    ).catch(() => {});
     getAdminStats().then(r => setStats(r.data)).catch(() => {});
   }, []);
 
@@ -24,8 +24,9 @@ export default function AdminDashboard() {
       getAdminStats().then(r => setStats(r.data)).catch(() => {});
     } catch (e) {
       alert(e.response?.data?.error || '실행 실패');
+    } finally {
+      setRunning(false);
     }
-    setRunning(false);
   };
 
   return (
