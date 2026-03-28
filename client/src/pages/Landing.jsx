@@ -6,11 +6,10 @@ import { useAuthStore } from '../store/authStore';
 export default function Landing() {
   const { session, user, initializing } = useAuthStore();
   const navigate = useNavigate();
-  const [devEmail, setDevEmail] = useState('');
-  const [devPassword, setDevPassword] = useState('');
-  const [devError, setDevError] = useState('');
-  const [devLoading, setDevLoading] = useState(false);
-  const [showDev, setShowDev] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (initializing || !session || !user) return;
@@ -30,17 +29,13 @@ export default function Landing() {
     });
   };
 
-  const handleDevLogin = async (e) => {
+  const handleEmailLogin = async (e) => {
     e.preventDefault();
-    setDevError('');
-    setDevLoading(true);
+    setError('');
+    setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: devEmail,
-        password: devPassword,
-      });
-      if (error) { setDevError(error.message); return; }
-      if (!data?.user) { setDevError('유저 정보 없음'); return; }
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) { setError(signInError.message); return; }
       const { data: userData } = await supabase
         .from('users')
         .select('role')
@@ -50,58 +45,60 @@ export default function Landing() {
       else if (userData?.role === 'company') navigate('/company');
       else navigate('/dashboard');
     } catch (err) {
-      setDevError(err.message || '로그인 중 오류가 발생했습니다.');
+      setError(err.message || '로그인 중 오류가 발생했습니다.');
     } finally {
-      setDevLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="text-center space-y-6">
-        <h1 className="text-4xl font-bold text-slate-900">Jamie CMS</h1>
-        <p className="text-slate-500">정기결제 자동이체 관리 서비스</p>
-        <button
-          onClick={handleKakaoLogin}
-          className="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-semibold px-8 py-3 rounded-xl flex items-center gap-2 mx-auto transition"
-        >
-          카카오로 로그인
-        </button>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold text-slate-900">Jamie CMS</h1>
+          <p className="text-slate-500 text-sm">정기결제 자동이체 관리 서비스</p>
+        </div>
 
-        {/* 개발자 로그인 */}
-        <div>
+        {/* 일반 유저: 카카오 로그인 */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-3">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">일반 회원</p>
           <button
-            onClick={() => setShowDev(v => !v)}
-            className="text-xs text-slate-400 hover:text-slate-600"
+            onClick={handleKakaoLogin}
+            className="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition"
           >
-            개발자 로그인
+            카카오로 로그인
           </button>
-          {showDev && (
-            <form onSubmit={handleDevLogin} className="mt-3 space-y-2 w-64 mx-auto">
-              <input
-                type="email"
-                placeholder="이메일"
-                value={devEmail}
-                onChange={e => setDevEmail(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
-              />
-              <input
-                type="password"
-                placeholder="비밀번호"
-                value={devPassword}
-                onChange={e => setDevPassword(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
-              />
-              {devError && <p className="text-red-500 text-xs">{devError}</p>}
-              <button
-                type="submit"
-                disabled={devLoading}
-                className="w-full bg-slate-700 text-white rounded-lg py-2 text-sm hover:bg-slate-800 transition disabled:opacity-50"
-              >
-                {devLoading ? '로그인 중...' : '로그인'}
-              </button>
-            </form>
-          )}
+        </div>
+
+        {/* 관리자 / 업체: 이메일 로그인 */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-3">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">관리자 · 업체</p>
+          <form onSubmit={handleEmailLogin} className="space-y-2">
+            <input
+              type="email"
+              placeholder="이메일"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+            />
+            <input
+              type="password"
+              placeholder="비밀번호"
+              required
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+            />
+            {error && <p className="text-red-500 text-xs">{error}</p>}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-slate-800 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-slate-900 transition disabled:opacity-50"
+            >
+              {loading ? '로그인 중...' : '이메일로 로그인'}
+            </button>
+          </form>
         </div>
       </div>
     </div>
