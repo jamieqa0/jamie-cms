@@ -1,0 +1,94 @@
+<h2>어드민 대시보드 — 새 레이아웃 옵션</h2>
+<p class="subtitle">통계 카드와 시연용 자동이체 버튼 위치를 골라주세요</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>통계 상단 배치</h3>
+      <p>기존 카드 위에 수납 통계(수납률·수납액·실패건수) 행 추가 → 그 아래 기존 카드 3개 → 맨 아래 시연 버튼</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">미리보기</div>
+        <div class="mockup-body" style="padding:12px;font-size:12px">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+            <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;text-align:center">
+              <div style="color:#16a34a;font-size:10px;margin-bottom:4px">이번 달 수납률</div>
+              <div style="font-weight:700;color:#15803d;font-size:18px">87.5%</div>
+            </div>
+            <div style="background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:10px;text-align:center">
+              <div style="color:#2563eb;font-size:10px;margin-bottom:4px">총 수납액</div>
+              <div style="font-weight:700;color:#1d4ed8;font-size:18px">₩240,000</div>
+            </div>
+            <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;text-align:center">
+              <div style="color:#dc2626;font-size:10px;margin-bottom:4px">실패 건수</div>
+              <div style="font-weight:700;color:#b91c1c;font-size:18px">2건</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px">
+              <div style="color:#64748b;font-size:10px">전체 회원</div>
+              <div style="font-weight:700;font-size:16px">12</div>
+            </div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px">
+              <div style="color:#64748b;font-size:10px">등록 상품</div>
+              <div style="font-weight:700;font-size:16px">5</div>
+            </div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px">
+              <div style="color:#64748b;font-size:10px">실행 기록</div>
+              <div style="font-weight:700;font-size:16px">28</div>
+            </div>
+          </div>
+          <div style="background:#7c3aed;color:#fff;border-radius:8px;padding:10px;text-align:center;font-size:12px;cursor:pointer">
+            ▶ 오늘 자동이체 실행 (시연용)
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>통계 + 버튼 오른쪽 사이드</h3>
+      <p>기존 카드 3개는 그대로 두고, 오른쪽에 통계 패널과 시연 버튼을 세로로 배치</p>
+      <div class="mockup" style="margin-top:12px">
+        <div class="mockup-header">미리보기</div>
+        <div class="mockup-body" style="padding:12px;font-size:12px;display:flex;gap:8px">
+          <div style="flex:2">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px">
+                <div style="color:#64748b;font-size:10px">전체 회원</div>
+                <div style="font-weight:700;font-size:16px">12</div>
+              </div>
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px">
+                <div style="color:#64748b;font-size:10px">등록 상품</div>
+                <div style="font-weight:700;font-size:16px">5</div>
+              </div>
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px">
+                <div style="color:#64748b;font-size:10px">실행 기록</div>
+                <div style="font-weight:700;font-size:16px">28</div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+            <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;text-align:center">
+              <div style="color:#16a34a;font-size:10px">수납률</div>
+              <div style="font-weight:700;color:#15803d">87.5%</div>
+            </div>
+            <div style="background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:10px;text-align:center">
+              <div style="color:#2563eb;font-size:10px">수납액</div>
+              <div style="font-weight:700;color:#1d4ed8">₩240,000</div>
+            </div>
+            <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px;text-align:center">
+              <div style="color:#dc2626;font-size:10px">실패</div>
+              <div style="font-weight:700;color:#b91c1c">2건</div>
+            </div>
+            <div style="background:#7c3aed;color:#fff;border-radius:8px;padding:8px;text-align:center;font-size:11px">
+              ▶ 자동이체 실행
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

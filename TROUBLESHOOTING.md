@@ -40,6 +40,28 @@
 ### 🌐 클라이언트 API 호출 실패 (404/Unknown Host)
 - **증상:** 로그인 버튼을 눌러도 서버(`4000`)로 아무런 로그가 남지 않음.
 - **원인:** `client/.env` 파일이 없어 프론트엔드가 백엔드 서버의 주소를 알지 못함.
+
+### 🔗 6. API Route Name Mismatch (`/auth/token` vs `/auth/exchange`)
+- **증상:** 로그인은 되는 듯하나 대시보드로 넘어가지 않고 무한 루프 또는 에러 발생.
+- **원인:** 프론트엔드는 `GET /auth/token`을 호출하는데, 백엔드는 해당 경로가 없거나 `POST /exchange`만 열려 있었음.
+- **해결:** 백엔드 `auth.js`에서 `router.get('/token', exchangeToken);` 경로를 명시적으로 복구하여 해결.
+
+### ♻️ React StrictMode로 인한 임시코드 이중 소비 (401)
+- **증상:** 카카오 로그인 후 `/auth/callback`에서 `/api/auth/token` 요청이 401 반환, 랜딩 페이지로 돌아감.
+- **원인:** React 18 StrictMode가 개발 모드에서 `useEffect`를 두 번 실행함. 1번째 요청에서 임시코드가 소비(Map에서 삭제)되고, 2번째 요청에서 같은 코드로 재요청 → 코드 없음 → 401.
+- **해결:** `AuthCallback.jsx`에 `useRef(false)` 플래그를 추가해 두 번째 실행을 차단:
+  ```js
+  const called = useRef(false);
+  useEffect(() => {
+    if (called.current) return;
+    called.current = true;
+    // ... 기존 로직
+  }, [...]);
+  ```
+
+---
+**🏁 최종 결과 (2026-03-28 02:00)**
+- 모든 설정이 완료되었습니다.
 - **해결:** `client/.env` 파일을 새로 생성하고 아래 내용을 입력:
   ```text
   VITE_API_URL=http://localhost:4000/api

@@ -7,6 +7,7 @@ const required = [
   'KAKAO_CLIENT_ID',
   'KAKAO_REDIRECT_URI',
   'CLIENT_URL',
+  'SCHEDULER_SECRET',
 ];
 
 for (const key of required) {
@@ -20,5 +21,6 @@ module.exports = {
   KAKAO_CLIENT_ID: process.env.KAKAO_CLIENT_ID,
   KAKAO_REDIRECT_URI: process.env.KAKAO_REDIRECT_URI,
   CLIENT_URL: process.env.CLIENT_URL,
+  SCHEDULER_SECRET: process.env.SCHEDULER_SECRET,
   PORT: process.env.PORT || 4000,
 };

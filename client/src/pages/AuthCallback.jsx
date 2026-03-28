@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { getMe } from '../api/auth';
@@ -7,8 +7,12 @@ export default function AuthCallback() {
   const [params] = useSearchParams();
   const { setTokens, setUser } = useAuthStore();
   const navigate = useNavigate();
+  const called = useRef(false);
 
   useEffect(() => {
+    if (called.current) return;
+    called.current = true;
+
     const code = params.get('code');
     if (!code) { navigate('/'); return; }
 

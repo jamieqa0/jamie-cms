@@ -49,7 +49,7 @@ export default function AdminDashboard() {
             ))}
           </div>
           {stats && stats.failCount > 0 && (
-            <Link to="/admin/transfers"
+            <Link to="/admin/unpaid"
               className="flex items-center justify-between bg-red-50 border border-red-200 rounded-2xl p-5 hover:border-red-400 transition">
               <div>
                 <p className="text-red-600 text-sm font-semibold">⚠ 미수납 내역</p>

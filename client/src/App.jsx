@@ -13,6 +13,7 @@ import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminTransfers from './pages/admin/AdminTransfers';
+import AdminUnpaid from './pages/admin/AdminUnpaid';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import Layout from './components/Layout';
@@ -41,6 +42,7 @@ export default function App() {
               <Route path="/admin/products/:id" element={<AdminProductForm />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/transfers" element={<AdminTransfers />} />
+              <Route path="/admin/unpaid" element={<AdminUnpaid />} />
             </Route>
           </Route>
         </Route>

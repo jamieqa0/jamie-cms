@@ -2,72 +2,107 @@ const pool = require('../config/db');
 const { runAutoDebit } = require('../scheduler/autoDebit');
 
 const getUsers = async (req, res) => {
-  const result = await pool.query(
-    `SELECT id, nickname, email, role, created_at FROM users ORDER BY created_at DESC`
-  );
-  res.json(result.rows);
+  try {
+    const result = await pool.query(
+      `SELECT id, nickname, email, role, created_at FROM users ORDER BY created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
 };
 
 const getBillingLogs = async (req, res) => {
-  const result = await pool.query(
-    `SELECT bl.*, p.name as product_name, u.nickname
-     FROM billing_logs bl
-     JOIN products p ON bl.product_id = p.id
-     JOIN subscriptions s ON bl.subscription_id = s.id
-     JOIN users u ON s.user_id = u.id
-     ORDER BY bl.executed_at DESC
-     LIMIT 100`
-  );
-  res.json(result.rows);
+  try {
+    const result = await pool.query(
+      `SELECT bl.*, p.name as product_name, u.nickname
+       FROM billing_logs bl
+       JOIN products p ON bl.product_id = p.id
+       JOIN subscriptions s ON bl.subscription_id = s.id
+       JOIN users u ON s.user_id = u.id
+       ORDER BY bl.executed_at DESC
+       LIMIT 100`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
 };
 
 const getAdminProducts = async (req, res) => {
-  const result = await pool.query(`SELECT * FROM products ORDER BY created_at DESC`);
-  res.json(result.rows);
+  try {
+    const result = await pool.query(`SELECT * FROM products ORDER BY created_at DESC`);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
 };
 
 const getAdminProduct = async (req, res) => {
-  const result = await pool.query(`SELECT * FROM products WHERE id = $1`, [req.params.id]);
-  if (!result.rows[0]) return res.status(404).json({ error: 'Product not found' });
-  res.json(result.rows[0]);
+  try {
+    const result = await pool.query(`SELECT * FROM products WHERE id = $1`, [req.params.id]);
+    if (!result.rows[0]) return res.status(404).json({ error: 'Product not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
 };
 
 const createProduct = async (req, res) => {
-  const { name, category, description, amount, billing_day } = req.body;
-  if (!name || !category || !amount || !billing_day) {
-    return res.status(400).json({ error: 'name, category, amount, billing_day are required' });
+  try {
+    const { name, category, description, amount, billing_day } = req.body;
+    if (!name || !category || !amount || !billing_day) {
+      return res.status(400).json({ error: 'name, category, amount, billing_day are required' });
+    }
+    const result = await pool.query(
+      `INSERT INTO products (name, category, description, amount, billing_day) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+      [name, category, description, amount, billing_day]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
-  const result = await pool.query(
-    `INSERT INTO products (name, category, description, amount, billing_day) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-    [name, category, description, amount, billing_day]
-  );
-  res.status(201).json(result.rows[0]);
 };
 
 const updateProduct = async (req, res) => {
-  const { name, category, description, amount, billing_day, is_active } = req.body;
-  const result = await pool.query(
-    `UPDATE products SET
-       name = COALESCE($1, name),
-       category = COALESCE($2, category),
-       description = COALESCE($3, description),
-       amount = COALESCE($4, amount),
-       billing_day = COALESCE($5, billing_day),
-       is_active = COALESCE($6, is_active)
-     WHERE id = $7 RETURNING *`,
-    [name, category, description, amount, billing_day, is_active, req.params.id]
-  );
-  if (!result.rows[0]) return res.status(404).json({ error: 'Product not found' });
-  res.json(result.rows[0]);
+  try {
+    const { name, category, description, amount, billing_day, is_active } = req.body;
+    const result = await pool.query(
+      `UPDATE products SET
+         name = COALESCE($1, name),
+         category = COALESCE($2, category),
+         description = COALESCE($3, description),
+         amount = COALESCE($4, amount),
+         billing_day = COALESCE($5, billing_day),
+         is_active = COALESCE($6, is_active)
+       WHERE id = $7 RETURNING *`,
+      [name, category, description, amount, billing_day, is_active, req.params.id]
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: 'Product not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
 };
 
 const deleteProduct = async (req, res) => {
-  const result = await pool.query(
-    `UPDATE products SET is_active = false WHERE id = $1 RETURNING id`,
-    [req.params.id]
-  );
-  if (!result.rows[0]) return res.status(404).json({ error: 'Product not found' });
-  res.status(204).send();
+  try {
+    const result = await pool.query(
+      `UPDATE products SET is_active = false WHERE id = $1 RETURNING id`,
+      [req.params.id]
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: 'Product not found' });
+    res.status(204).send();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
 };
 
 const getStats = async (req, res) => {
@@ -163,11 +198,6 @@ const retryBilling = async (req, res) => {
       await client.query(
         `INSERT INTO transactions (account_id, type, amount, description) VALUES ($1, 'deposit', $2, '재청구 수납')`,
         [collectionAccountId, amount]
-      );
-      await client.query(
-        `INSERT INTO billing_logs (subscription_id, product_id, account_id, amount, status)
-         VALUES ($1, $2, $3, $4, 'success')`,
-        [subscription_id, product_id, account_id, amount]
       );
       await client.query(
         `UPDATE billing_logs SET status = 'success' WHERE id = $1`,
