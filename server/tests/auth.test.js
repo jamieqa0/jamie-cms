@@ -32,9 +32,6 @@ afterAll(async () => {
 });
 
 test('refresh 성공 시 새 accessToken과 새 refreshToken 반환', async () => {
-  // Wait for a new second so the rotated token has a different iat.
-  await new Promise((resolve) => setTimeout(resolve, 1100));
-
   const res = await request(app)
     .post('/api/auth/refresh')
     .send({ refreshToken });
@@ -45,16 +42,10 @@ test('refresh 성공 시 새 accessToken과 새 refreshToken 반환', async () =
 });
 
 test('기존 refreshToken은 로테이션 후 재사용 불가 (401)', async () => {
-  // Wait for a new second so the rotated token has a different iat,
-  // ensuring the new token string differs from the original.
-  await new Promise((resolve) => setTimeout(resolve, 1100));
-
   const first = await request(app)
     .post('/api/auth/refresh')
     .send({ refreshToken });
   expect(first.status).toBe(200);
-
-  await new Promise((resolve) => setTimeout(resolve, 1100));
 
   const second = await request(app)
     .post('/api/auth/refresh')
