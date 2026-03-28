@@ -1,18 +1,23 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 
 export default function Landing() {
-  const { accessToken } = useAuthStore();
+  const { session } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (accessToken) navigate('/dashboard');
-  }, [accessToken, navigate]);
+    if (session) navigate('/dashboard');
+  }, [session, navigate]);
 
-  const handleKakaoLogin = () => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
-    window.location.href = `${apiUrl}/auth/kakao`;
+  const handleKakaoLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
   };
 
   return (

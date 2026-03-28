@@ -1,34 +1,27 @@
 import { useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { getMe } from '../api/auth';
 
 export default function AuthCallback() {
-  const [params] = useSearchParams();
-  const { setTokens, setUser } = useAuthStore();
+  const { session } = useAuthStore();
   const navigate = useNavigate();
-  const called = useRef(false);
+  const redirected = useRef(false);
 
   useEffect(() => {
-    if (called.current) return;
-    called.current = true;
+    if (redirected.current) return;
+    if (session) {
+      redirected.current = true;
+      navigate('/dashboard');
+    }
+  }, [session, navigate]);
 
-    const code = params.get('code');
-    if (!code) { navigate('/'); return; }
-
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
-    fetch(`${apiUrl}/auth/token?code=${code}`)
-      .then(r => r.json())
-      .then(({ accessToken, refreshToken }) => {
-        setTokens(accessToken, refreshToken);
-        return getMe();
-      })
-      .then((res) => {
-        setUser(res.data);
-        navigate('/dashboard');
-      })
-      .catch(() => navigate('/'));
-  }, [params, setTokens, setUser, navigate]);
+  // 세션이 없는 채로 5초 경과 시 홈으로
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!redirected.current) navigate('/');
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
