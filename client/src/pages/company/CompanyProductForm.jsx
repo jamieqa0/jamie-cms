@@ -8,13 +8,13 @@ export default function CompanyProductForm() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const isEdit = Boolean(id);
-  const [form, setForm] = useState({ name: '', amount: '', billing_day: '' });
+  const [form, setForm] = useState({ name: '', amount: '', billing_day: '', category: 'etc' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!isEdit) return;
-    getCompanyProduct(id).then(p => setForm({ name: p.name, amount: p.amount, billing_day: p.billing_day })).catch(() => {});
+    getCompanyProduct(id).then(p => setForm({ name: p.name, amount: p.amount, billing_day: p.billing_day, category: p.category ?? 'etc' })).catch(() => {});
   }, [id, isEdit]);
 
   const handleSubmit = async (e) => {
@@ -24,7 +24,7 @@ export default function CompanyProductForm() {
     if (day < 1 || day > 28) { setError('결제일은 1~28 사이여야 합니다.'); return; }
     setLoading(true);
     try {
-      const payload = { name: form.name, amount: Number(form.amount), billing_day: day };
+      const payload = { name: form.name, amount: Number(form.amount), billing_day: day, category: form.category };
       if (isEdit) await updateCompanyProduct(id, payload);
       else await createCompanyProduct(user.id, payload);
       navigate('/company/products');
@@ -52,6 +52,17 @@ export default function CompanyProductForm() {
             onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             placeholder="29900" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">카테고리</label>
+          <select required value={form.category}
+            onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+            <option value="delivery">배송</option>
+            <option value="rental">렌탈</option>
+            <option value="donation">후원</option>
+            <option value="etc">기타</option>
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">결제일 (1~28)</label>
