@@ -13,12 +13,21 @@ export default function AdminCompanyForm() {
     setError('');
     setLoading(true);
     try {
+      // 어드민 세션 저장 — signUp 후 세션이 교체되므로 미리 백업
+      const { data: { session: adminSession } } = await supabase.auth.getSession();
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
         options: { data: { name: form.nickname, role: 'company' } },
       });
       if (signUpError) throw signUpError;
+
+      // 어드민 세션 복원
+      await supabase.auth.setSession({
+        access_token: adminSession.access_token,
+        refresh_token: adminSession.refresh_token,
+      });
 
       const { error: companyError } = await supabase
         .from('companies')
