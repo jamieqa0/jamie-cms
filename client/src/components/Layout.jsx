@@ -1,14 +1,12 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { logout as logoutApi } from '../api/auth';
 
 export default function Layout() {
-  const { user, refreshToken, logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    try { await logoutApi(refreshToken); } catch {}
-    logout();
+    await logout();
     navigate('/');
   };
 
