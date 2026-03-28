@@ -32,6 +32,17 @@ export const createSubscription = async ({ productId, accountId, paymentMethod =
   return { data };
 };
 
+export const updateSubscription = async (id, status) => {
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .update({ status })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw { response: { data: { error: error.message } } };
+  return { data };
+};
+
 export const cancelSubscription = async (id) => {
   const { data, error } = await supabase
     .from('subscriptions')
