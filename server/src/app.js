@@ -21,6 +21,7 @@ app.use('/api/accounts', require('./routes/accounts'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/subscriptions', require('./routes/subscriptions'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/scheduler', require('./routes/scheduler'));
 
 // 404
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
