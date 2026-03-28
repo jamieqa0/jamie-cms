@@ -40,8 +40,11 @@ export default function Dashboard() {
           <ul className="space-y-2">
             {subscriptions.filter(s => s.status === 'active').map(s => (
               <li key={s.id} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
-                <span className="text-slate-700">{s.product_name}</span>
-                <span className="text-slate-900 font-medium">{Number(s.amount).toLocaleString()}원 / 매월 {s.billing_day}일</span>
+                <div>
+                  <p className="text-slate-700 font-medium">{s.product_name}</p>
+                  {s.company_name && <p className="text-slate-400 text-xs mt-0.5">{s.company_name}</p>}
+                </div>
+                <span className="text-slate-900 font-medium text-sm">{Number(s.amount).toLocaleString()}원 / 매월 {s.billing_day}일</span>
               </li>
             ))}
           </ul>

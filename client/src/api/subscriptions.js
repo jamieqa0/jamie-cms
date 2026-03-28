@@ -4,7 +4,7 @@ export const getSubscriptions = async () => {
   const { data: { user } } = await supabase.auth.getUser();
   const { data } = await supabase
     .from('subscriptions')
-    .select('*, products(name, amount, billing_day)')
+    .select('*, products(name, amount, billing_day, users!company_id(nickname))')
     .eq('user_id', user.id)
     .order('created_at');
   const flattened = (data || []).map(s => ({
@@ -12,6 +12,7 @@ export const getSubscriptions = async () => {
     product_name: s.products?.name,
     amount: s.products?.amount,
     billing_day: s.products?.billing_day,
+    company_name: s.products?.users?.nickname,
   }));
   return { data: flattened };
 };
