@@ -41,10 +41,8 @@ export default function AdminLayout() {
         </div>
         <div className="flex items-center gap-1 mt-2 overflow-x-auto pb-1">
           <NavLink to="/admin" end className={navClass}>대시보드</NavLink>
-          <NavLink to="/admin/products" className={navClass}>상품 관리</NavLink>
-          <NavLink to="/admin/users" className={navClass}>회원 목록</NavLink>
+          <NavLink to="/admin/companies" className={navClass}>업체 관리</NavLink>
           <NavLink to="/admin/transfers" className={navClass}>자동이체 내역</NavLink>
-          <NavLink to="/admin/unpaid" className={navClass}>미수납 관리</NavLink>
         </div>
       </nav>
       <main className="max-w-5xl mx-auto px-4 py-6 sm:px-6 sm:py-8">

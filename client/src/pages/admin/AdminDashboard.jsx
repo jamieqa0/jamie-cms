@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getAdminUsers, getAdminProducts, getAdminTransfers, getAdminStats, runAdminScheduler } from '../../api/admin';
+import { getAdminTransfers, getAdminStats, runAdminScheduler } from '../../api/admin';
+import { supabase } from '../../lib/supabase';
 
 export default function AdminDashboard() {
-  const [counts, setCounts] = useState({ users: 0, products: 0, transfers: 0 });
+  const [counts, setCounts] = useState({ companies: 0, transfers: 0 });
   const [stats, setStats] = useState(null);
   const [running, setRunning] = useState(false);
 
   useEffect(() => {
-    Promise.all([getAdminUsers(), getAdminProducts(), getAdminTransfers()]).then(
-      ([u, p, t]) => setCounts({ users: u.data.length, products: p.data.length, transfers: t.data.length })
-    ).catch(() => {});
+    Promise.all([
+      supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'company'),
+      getAdminTransfers(),
+    ]).then(([companyRes, t]) => {
+      setCounts({ companies: companyRes.count ?? 0, transfers: t.data?.length ?? 0 });
+    }).catch(() => {});
     getAdminStats().then(r => setStats(r.data)).catch(() => {});
   }, []);
 
@@ -37,8 +41,7 @@ export default function AdminDashboard() {
         <div className="w-full md:flex-[2] space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
-              { label: '전체 회원', value: counts.users, to: '/admin/users' },
-              { label: '등록 상품', value: counts.products, to: '/admin/products' },
+              { label: '등록 업체', value: counts.companies, to: '/admin/companies' },
               { label: '자동이체 기록', value: counts.transfers, to: '/admin/transfers' },
             ].map(item => (
               <Link key={item.label} to={item.to}
