@@ -95,6 +95,19 @@ export const getCompanyUnpaid = async (companyId) => {
   return data;
 };
 
+// ── Company Account ───────────────────────────────────────
+
+export const getCompanyAccount = async (companyId) => {
+  const { data, error } = await supabase
+    .from('accounts')
+    .select('id, balance')
+    .eq('user_id', companyId)
+    .eq('type', 'company')
+    .single();
+  if (error) throw error;
+  return data;
+};
+
 // ── Consent acceptance ────────────────────────────────────
 
 export const getConsentRequest = async (token) => {

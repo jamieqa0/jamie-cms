@@ -16,6 +16,7 @@ import AdminTransfers from './pages/admin/AdminTransfers';
 import AdminUnpaid from './pages/admin/AdminUnpaid';
 import AdminCompanies from './pages/admin/AdminCompanies';
 import AdminCompanyForm from './pages/admin/AdminCompanyForm';
+import AdminCollection from './pages/admin/AdminCollection';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import CompanyRoute from './components/CompanyRoute';
@@ -59,6 +60,7 @@ export default function App() {
               <Route path="/admin/unpaid" element={<AdminUnpaid />} />
               <Route path="/admin/companies" element={<AdminCompanies />} />
               <Route path="/admin/companies/new" element={<AdminCompanyForm />} />
+              <Route path="/admin/collection" element={<AdminCollection />} />
             </Route>
           </Route>
           <Route element={<CompanyRoute />}>

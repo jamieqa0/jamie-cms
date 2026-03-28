@@ -43,6 +43,7 @@ export default function AdminLayout() {
           <NavLink to="/admin" end className={navClass}>대시보드</NavLink>
           <NavLink to="/admin/companies" className={navClass}>업체 관리</NavLink>
           <NavLink to="/admin/transfers" className={navClass}>자동이체 내역</NavLink>
+          <NavLink to="/admin/collection" className={navClass}>집금/정산 현황</NavLink>
         </div>
       </nav>
       <main className="max-w-5xl mx-auto px-4 py-6 sm:px-6 sm:py-8">

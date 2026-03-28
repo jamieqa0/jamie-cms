@@ -31,7 +31,7 @@ export default function ProductDetail() {
     }
     setLoading(true);
     try {
-      await createSubscription(id, selectedAccount, paymentMethod);
+      await createSubscription({ productId: id, accountId: selectedAccount, paymentMethod });
       alert('구독이 완료되었어요!');
       navigate('/subscriptions');
     } catch (e) {

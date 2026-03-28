@@ -70,6 +70,11 @@ export const retryBilling = async (id) => {
   return { data };
 };
 
+export const getCollectionStats = async () => {
+  const { data } = await supabase.rpc('get_collection_stats');
+  return { data };
+};
+
 export const runAdminScheduler = async (day) => {
   const { data, error } = await supabase.functions.invoke('auto-debit', {
     body: { targetDay: day },

@@ -38,6 +38,17 @@ export default function AdminCompanyForm() {
         });
       if (companyError) throw companyError;
 
+      // 업체 계좌 자동 생성
+      const { error: accountError } = await supabase
+        .from('accounts')
+        .insert({
+          user_id: data.user.id,
+          name: `${form.nickname} 정산 계좌`,
+          type: 'company',
+          balance: 0,
+        });
+      if (accountError) throw accountError;
+
       navigate('/admin/companies');
     } catch (err) {
       setError(err.message || '업체 등록 중 오류가 발생했습니다.');

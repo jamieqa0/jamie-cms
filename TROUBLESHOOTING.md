@@ -105,3 +105,14 @@
   $$;
   ```
 
+### 🔴 로그인 200 OK인데 대시보드로 이동 안 됨 (session 저장 타이밍 버그)
+- **증상:** `signInWithPassword` 200 OK 성공, 에러 없음. URL 변경 없이 Landing 화면에 그대로 머무름.
+- **원인:** `authStore.js`의 `onAuthStateChange`에서 `public.users` 조회(`await`)가 끝난 후에야 `session`을 스토어에 저장. Landing.jsx의 `useEffect`가 `session` 변경을 감지 못해 `navigate('/dashboard')` 미실행.
+- **해결:** `session`을 즉시 먼저 저장하고, `user` 정보를 별도로 업데이트 (`authStore.js`):
+  ```js
+  if (session) {
+    useAuthStore.setState({ session }); // 즉시 저장
+    const { data: userData } = await supabase.from('users')...
+    useAuthStore.setState({ user: userData }); // 이후 업데이트
+  }
+  ```

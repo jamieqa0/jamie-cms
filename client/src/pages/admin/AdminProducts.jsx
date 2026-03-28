@@ -23,6 +23,7 @@ export default function AdminProducts() {
         </Link>
       </div>
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
             <tr>
@@ -56,6 +57,7 @@ export default function AdminProducts() {
             ))}
           </tbody>
         </table>
+        </div>
         {products.length === 0 && (
           <p className="text-slate-400 text-sm text-center py-8">등록된 상품이 없어요.</p>
         )}
