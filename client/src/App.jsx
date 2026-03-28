@@ -17,6 +17,7 @@ import AdminUnpaid from './pages/admin/AdminUnpaid';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import Layout from './components/Layout';
+import AdminLayout from './components/AdminLayout';
 
 export default function App() {
   return (
@@ -35,7 +36,7 @@ export default function App() {
             <Route path="/profile" element={<Profile />} />
           </Route>
           <Route element={<AdminRoute />}>
-            <Route element={<Layout />}>
+            <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProducts />} />
               <Route path="/admin/products/new" element={<AdminProductForm />} />
