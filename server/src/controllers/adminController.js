@@ -169,6 +169,10 @@ const retryBilling = async (req, res) => {
          VALUES ($1, $2, $3, $4, 'success')`,
         [subscription_id, product_id, account_id, amount]
       );
+      await client.query(
+        `UPDATE billing_logs SET status = 'success' WHERE id = $1`,
+        [req.params.id]
+      );
 
       await client.query('COMMIT');
       committed = true;

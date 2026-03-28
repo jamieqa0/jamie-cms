@@ -144,6 +144,13 @@ test('POST /api/admin/unpaid/:id/retry - 잔액 충분 시 재청구 성공', as
 
   const acct = await pool.query(`SELECT balance FROM accounts WHERE id = $1`, [accountId]);
   expect(Number(acct.rows[0].balance)).toBe(40000);
+
+  // 재청구 후 unpaid 목록에서 제거되었는지 확인
+  const unpaidRes = await request(app)
+    .get('/api/admin/unpaid')
+    .set('Authorization', `Bearer ${adminToken}`);
+  const stillFailed = unpaidRes.body.find(r => r.id === billingLogId);
+  expect(stillFailed).toBeUndefined();
 });
 
 // --- Admin Scheduler ---
