@@ -6,3 +6,7 @@ export const getAdminProduct = (id) => api.get(`/admin/products/${id}`);
 export const createProduct = (data) => api.post('/admin/products', data);
 export const updateProduct = (id, data) => api.put(`/admin/products/${id}`, data);
 export const deleteProduct = (id) => api.delete(`/admin/products/${id}`);
+export const getAdminStats = () => api.get('/admin/stats');
+export const getUnpaid = () => api.get('/admin/unpaid');
+export const retryBilling = (id) => api.post(`/admin/unpaid/${id}/retry`);
+export const runAdminScheduler = (day) => api.post('/admin/scheduler/run', { day });
