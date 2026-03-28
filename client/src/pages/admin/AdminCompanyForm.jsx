@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 
 export default function AdminCompanyForm() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '', nickname: '' });
+  const [form, setForm] = useState({ email: '', password: '', nickname: '', industry: '', commission_rate: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +22,12 @@ export default function AdminCompanyForm() {
 
       const { error: updateError } = await supabase
         .from('users')
-        .update({ role: 'company', nickname: form.nickname })
+        .update({
+          role: 'company',
+          nickname: form.nickname,
+          industry: form.industry || null,
+          commission_rate: form.commission_rate !== '' ? Number(form.commission_rate) : null,
+        })
         .eq('id', data.user.id);
       if (updateError) throw updateError;
 
@@ -70,6 +75,29 @@ export default function AdminCompanyForm() {
             onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
             placeholder="6자 이상"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">업종</label>
+          <input
+            type="text"
+            value={form.industry}
+            onChange={e => setForm(f => ({ ...f, industry: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            placeholder="헬스케어, 교육, 구독서비스 등"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">수수료 (%)</label>
+          <input
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            value={form.commission_rate}
+            onChange={e => setForm(f => ({ ...f, commission_rate: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            placeholder="3.5"
           />
         </div>
         {error && <p className="text-red-500 text-sm">{error}</p>}
