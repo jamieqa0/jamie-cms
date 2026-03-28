@@ -21,7 +21,7 @@ api.interceptors.response.use(
       try {
         const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
         const res = await axios.post(`${baseURL}/auth/refresh`, { refreshToken });
-        setTokens(res.data.accessToken, refreshToken);
+        setTokens(res.data.accessToken, res.data.refreshToken ?? refreshToken);
         original.headers.Authorization = `Bearer ${res.data.accessToken}`;
         return api(original);
       } catch {
