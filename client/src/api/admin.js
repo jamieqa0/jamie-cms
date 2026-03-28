@@ -1,12 +1,79 @@
-import api from './client';
-export const getAdminUsers = () => api.get('/admin/users');
-export const getAdminTransfers = () => api.get('/admin/transfers');
-export const getAdminProducts = () => api.get('/admin/products');
-export const getAdminProduct = (id) => api.get(`/admin/products/${id}`);
-export const createProduct = (data) => api.post('/admin/products', data);
-export const updateProduct = (id, data) => api.put(`/admin/products/${id}`, data);
-export const deleteProduct = (id) => api.delete(`/admin/products/${id}`);
-export const getAdminStats = () => api.get('/admin/stats');
-export const getUnpaid = () => api.get('/admin/unpaid');
-export const retryBilling = (id) => api.post(`/admin/unpaid/${id}/retry`);
-export const runAdminScheduler = (day) => api.post('/admin/scheduler/run', { day });
+import { supabase } from '../lib/supabase';
+
+export const getAdminUsers = async () => {
+  const { data } = await supabase.rpc('get_admin_users');
+  return { data };
+};
+
+export const getAdminTransfers = async () => {
+  const { data } = await supabase.rpc('get_admin_transfers');
+  return { data };
+};
+
+export const getAdminProducts = async () => {
+  const { data } = await supabase
+    .from('products')
+    .select('*')
+    .order('created_at', { ascending: false });
+  return { data };
+};
+
+export const getAdminProduct = async (id) => {
+  const { data } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', id)
+    .single();
+  return { data };
+};
+
+export const createProduct = async (productData) => {
+  const { data } = await supabase
+    .from('products')
+    .insert(productData)
+    .select()
+    .single();
+  return { data };
+};
+
+export const updateProduct = async (id, productData) => {
+  const { data } = await supabase
+    .from('products')
+    .update(productData)
+    .eq('id', id)
+    .select()
+    .single();
+  return { data };
+};
+
+export const deleteProduct = async (id) => {
+  const { data } = await supabase
+    .from('products')
+    .delete()
+    .eq('id', id);
+  return { data };
+};
+
+export const getAdminStats = async () => {
+  const { data } = await supabase.rpc('get_admin_stats');
+  return { data };
+};
+
+export const getUnpaid = async () => {
+  const { data } = await supabase.rpc('get_unpaid_list');
+  return { data };
+};
+
+export const retryBilling = async (id) => {
+  const { data, error } = await supabase.rpc('retry_billing', { log_id: id });
+  if (error) throw { response: { data: { error: error.message } } };
+  return { data };
+};
+
+export const runAdminScheduler = async (day) => {
+  const { data, error } = await supabase.functions.invoke('auto-debit', {
+    body: { targetDay: day },
+  });
+  if (error) throw { response: { data: { error: error.message } } };
+  return { data };
+};
