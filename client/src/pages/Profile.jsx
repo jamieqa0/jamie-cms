@@ -1,13 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { updateMe } from '../api/auth';
+import { getMe, updateMe } from '../api/auth';
 
 export default function Profile() {
-  const { user, setUser } = useAuthStore();
+  const { user, session, setUser } = useAuthStore();
+  const isKakao = session?.user?.app_metadata?.provider === 'kakao';
   const [nickname, setNickname] = useState('');
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { if (user) setNickname(user.nickname); }, [user]);
+  useEffect(() => {
+    if (user) {
+      setNickname(user.nickname || '');
+    } else {
+      // authStore에 user가 없으면 직접 조회
+      getMe().then(res => {
+        if (res.data) {
+          setUser(res.data);
+          setNickname(res.data.nickname || '');
+        }
+      }).catch(() => {});
+    }
+  }, [user, setUser]);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -33,7 +46,14 @@ export default function Profile() {
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">이메일</label>
-            <p className="text-slate-500 text-sm">{user?.email || '이메일 없음'}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-slate-500 text-sm">{user?.email || '이메일 없음'}</p>
+              {isKakao && (
+                <span className="text-xs bg-yellow-100 text-yellow-700 font-medium px-2 py-0.5 rounded-full">
+                  카카오 SNS 계정
+                </span>
+              )}
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">역할</label>
