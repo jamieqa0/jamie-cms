@@ -66,7 +66,9 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await pool.query(`DELETE FROM billing_logs WHERE subscription_id = $1`, [subscriptionId]);
+  await pool.query(`DELETE FROM transactions WHERE account_id = $1 AND description = '자동이체 수납'`, [collectionAccountId]);
   await pool.query(`DELETE FROM subscriptions WHERE id = $1`, [subscriptionId]);
+  await pool.query(`DELETE FROM accounts WHERE id = $1`, [accountId]);
   await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
   await pool.query(`DELETE FROM products WHERE id = $1`, [productId]);
   // 집금 계좌는 공유 인프라이므로 삭제하지 않음

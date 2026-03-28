@@ -33,6 +33,7 @@ const runAutoDebit = async (targetDay = null) => {
 
   for (const row of result.rows) {
     const client = await pool.connect();
+    let committed = false;
     try {
       await client.query('BEGIN');
 
@@ -46,10 +47,12 @@ const runAutoDebit = async (targetDay = null) => {
         [collectionAccountId]
       );
 
+      if (!acct.rows[0]) throw new Error(`Account ${row.account_id} not found`);
       const balance = Number(acct.rows[0].balance);
 
       if (balance < row.amount) {
         await client.query('ROLLBACK');
+        committed = true; // 트랜잭션 종료됨
         await pool.query(
           `INSERT INTO billing_logs (subscription_id, product_id, account_id, amount, status, reason)
            VALUES ($1, $2, $3, $4, 'failed', '잔액 부족')`,
@@ -88,10 +91,25 @@ const runAutoDebit = async (targetDay = null) => {
       );
 
       await client.query('COMMIT');
+      committed = true;
       console.log(`[AutoDebit] Success: subscription ${row.subscription_id}`);
     } catch (err) {
-      await client.query('ROLLBACK');
+      if (!committed) {
+        try { await client.query('ROLLBACK'); } catch (rbErr) {
+          console.error(`[AutoDebit] Rollback failed for ${row.subscription_id}:`, rbErr);
+        }
+      }
       console.error(`[AutoDebit] Error for subscription ${row.subscription_id}:`, err);
+      // 예외 발생 시에도 billing_log에 실패 기록
+      try {
+        await pool.query(
+          `INSERT INTO billing_logs (subscription_id, product_id, account_id, amount, status, reason)
+           VALUES ($1, $2, $3, $4, 'failed', $5)`,
+          [row.subscription_id, row.product_id, row.account_id, row.amount, err.message]
+        );
+      } catch (logErr) {
+        console.error(`[AutoDebit] Failed to insert error log for ${row.subscription_id}:`, logErr);
+      }
     } finally {
       client.release();
     }

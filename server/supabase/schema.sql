@@ -14,6 +14,7 @@ CREATE TABLE accounts (
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name VARCHAR NOT NULL,
   balance BIGINT NOT NULL DEFAULT 0 CHECK (balance >= 0),
+  type VARCHAR NOT NULL DEFAULT 'personal' CHECK (type IN ('personal', 'collection')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -43,6 +44,7 @@ CREATE TABLE subscriptions (
   product_id UUID NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
   account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE RESTRICT,
   status VARCHAR NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'paused', 'cancelled')),
+  payment_method VARCHAR NOT NULL DEFAULT 'account' CHECK (payment_method IN ('account', 'card', 'phone')),
   started_at DATE NOT NULL DEFAULT CURRENT_DATE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
