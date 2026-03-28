@@ -45,6 +45,7 @@ export default function AdminUnpaid() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
@@ -81,6 +82,7 @@ export default function AdminUnpaid() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

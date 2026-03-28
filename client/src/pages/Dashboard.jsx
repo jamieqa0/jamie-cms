@@ -20,7 +20,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-slate-900">안녕하세요, {user?.nickname}님 👋</h1>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
           <p className="text-slate-500 text-sm">총 잔액</p>
           <p className="text-3xl font-bold text-slate-900 mt-1">{totalBalance.toLocaleString()}원</p>

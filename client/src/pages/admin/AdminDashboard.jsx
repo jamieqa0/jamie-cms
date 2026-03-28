@@ -32,10 +32,10 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-slate-900">어드민 대시보드</h1>
-      <div className="flex gap-4 items-start">
+      <div className="flex flex-col md:flex-row gap-4 items-start">
         {/* 왼쪽: 기본 카드 + 미수납 바로가기 */}
-        <div className="flex-[2] space-y-3">
-          <div className="grid grid-cols-3 gap-3">
+        <div className="w-full md:flex-[2] space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               { label: '전체 회원', value: counts.users, to: '/admin/users' },
               { label: '등록 상품', value: counts.products, to: '/admin/products' },
@@ -61,7 +61,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* 오른쪽: 통계 + 시연 버튼 */}
-        <div className="flex-1 space-y-3">
+        <div className="w-full md:flex-1 space-y-3">
           <div className="bg-green-50 border border-green-200 rounded-2xl p-5 text-center">
             <p className="text-green-600 text-sm">이번 달 수납률</p>
             <p className="text-3xl font-bold text-green-700 mt-1">

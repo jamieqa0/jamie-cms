@@ -9,6 +9,7 @@ export default function AdminUsers() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-slate-900">회원 목록</h1>
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
             <tr>
@@ -35,6 +36,7 @@ export default function AdminUsers() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
