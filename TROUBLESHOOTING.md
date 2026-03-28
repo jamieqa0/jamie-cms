@@ -71,3 +71,37 @@
 - **증상:** 서버 로그에 `injecting env (7)` 대신 적은 수의 환경변수만 읽혔다고 나옴.
 - **원인:** 수동으로 파일을 편집하다가 보이지 않는 공백이나 중복 줄바꿈이 생겨 특정 변수를 무시함.
 - **해결:** 파일 내용을 전부 지우고 공백 없이 깨끗하게 다시 작성 후 저장. (서버에서 `rs` 입력 필수)
+
+---
+
+## 4. Supabase Auth + 카카오 로그인 (2026-03-28)
+
+### 🔴 `500: Error getting user email from external provider`
+- **증상:** 카카오 로그인 시도 시 Supabase Auth 로그에 위 오류 발생. 브라우저에서 로그인 화면으로 돌아가는 현상.
+- **원인:** 카카오가 이메일을 기본 제공하지 않음. Supabase Auth는 이메일 없이는 유저 생성 불가. 카카오 개인 개발 앱은 이메일 동의항목 활성화 불가 (사업자 인증 필요).
+- **해결:** 카카오가 이메일을 전달하지 않아도 로그인 처리가 되도록 별도 대응 (아래 항목 참고).
+
+### 🔴 `500: duplicate key value violates unique constraint "users_kakao_id_key"`
+- **증상:** 카카오 로그인 재시도 시 `server_error` 발생. Supabase 로그에서 `duplicate key` 오류 확인.
+- **원인:** `auth.users → public.users` 동기화 트리거가 `ON CONFLICT (id) DO NOTHING`만 처리했는데, `kakao_id` 컬럼에도 UNIQUE 제약이 있어 `id` 충돌 전에 `kakao_id` 충돌이 먼저 발생.
+- **해결:** 트리거 함수를 `ON CONFLICT DO NOTHING` (조건 없이)으로 변경하여 모든 중복 충돌을 무시하도록 수정.
+  - 수정 파일: `supabase/migrations/005_fix_auth_trigger.sql`
+  ```sql
+  -- Supabase SQL Editor에서 실행
+  CREATE OR REPLACE FUNCTION public.handle_new_auth_user()
+  RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+  BEGIN
+    INSERT INTO public.users (id, kakao_id, nickname, email, role)
+    VALUES (
+      NEW.id,
+      NULLIF(NEW.raw_user_meta_data->>'provider_id', ''),
+      COALESCE(NEW.raw_user_meta_data->>'name', NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1), 'User'),
+      NEW.email,
+      'user'
+    )
+    ON CONFLICT DO NOTHING;
+    RETURN NEW;
+  END;
+  $$;
+  ```
+
