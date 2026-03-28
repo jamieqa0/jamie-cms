@@ -14,10 +14,22 @@ import AdminProductForm from './pages/admin/AdminProductForm';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminTransfers from './pages/admin/AdminTransfers';
 import AdminUnpaid from './pages/admin/AdminUnpaid';
+import AdminCompanies from './pages/admin/AdminCompanies';
+import AdminCompanyForm from './pages/admin/AdminCompanyForm';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
+import CompanyRoute from './components/CompanyRoute';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
+import CompanyLayout from './components/CompanyLayout';
+import CompanyDashboard from './pages/company/CompanyDashboard';
+import CompanyProducts from './pages/company/CompanyProducts';
+import CompanyProductForm from './pages/company/CompanyProductForm';
+import CompanyCustomers from './pages/company/CompanyCustomers';
+import CompanyCustomerForm from './pages/company/CompanyCustomerForm';
+import CompanyTransfers from './pages/company/CompanyTransfers';
+import CompanyUnpaid from './pages/company/CompanyUnpaid';
+import ConsentPage from './pages/ConsentPage';
 
 export default function App() {
   return (
@@ -25,6 +37,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/consent/:token" element={<ConsentPage />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
@@ -44,6 +57,20 @@ export default function App() {
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/transfers" element={<AdminTransfers />} />
               <Route path="/admin/unpaid" element={<AdminUnpaid />} />
+              <Route path="/admin/companies" element={<AdminCompanies />} />
+              <Route path="/admin/companies/new" element={<AdminCompanyForm />} />
+            </Route>
+          </Route>
+          <Route element={<CompanyRoute />}>
+            <Route element={<CompanyLayout />}>
+              <Route path="/company" element={<CompanyDashboard />} />
+              <Route path="/company/products" element={<CompanyProducts />} />
+              <Route path="/company/products/new" element={<CompanyProductForm />} />
+              <Route path="/company/products/:id" element={<CompanyProductForm />} />
+              <Route path="/company/customers" element={<CompanyCustomers />} />
+              <Route path="/company/customers/new" element={<CompanyCustomerForm />} />
+              <Route path="/company/transfers" element={<CompanyTransfers />} />
+              <Route path="/company/unpaid" element={<CompanyUnpaid />} />
             </Route>
           </Route>
         </Route>
