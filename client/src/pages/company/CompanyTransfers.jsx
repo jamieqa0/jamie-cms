@@ -31,7 +31,7 @@ export default function CompanyTransfers() {
             )}
             {transfers.map(t => (
               <tr key={t.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50">
-                <td className="px-5 py-3 text-slate-500">{new Date(t.billed_at).toLocaleDateString('ko-KR')}</td>
+                <td className="px-5 py-3 text-slate-500">{new Date(t.executed_at).toLocaleDateString('ko-KR')}</td>
                 <td className="px-5 py-3 text-slate-700">{t.user_nickname}</td>
                 <td className="px-5 py-3 text-slate-700">{t.product_name}</td>
                 <td className="px-5 py-3 font-medium text-slate-900">{Number(t.amount).toLocaleString()}원</td>

@@ -144,7 +144,15 @@ export default function ConsentPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-3">
             <p className="text-sm font-medium text-slate-700">출금 계좌 선택</p>
             {accounts.length === 0 ? (
-              <p className="text-sm text-red-500">등록된 계좌가 없습니다. 먼저 계좌를 등록해주세요.</p>
+              <div className="text-center space-y-3">
+                <p className="text-sm text-red-500">등록된 계좌가 없습니다.</p>
+                <a
+                  href="/accounts"
+                  className="inline-block w-full bg-slate-800 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-700 transition text-center"
+                >
+                  계좌 등록하러 가기 →
+                </a>
+              </div>
             ) : (
               <select
                 value={selectedAccount}

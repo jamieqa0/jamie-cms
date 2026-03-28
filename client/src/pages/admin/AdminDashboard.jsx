@@ -7,6 +7,7 @@ export default function AdminDashboard() {
   const [counts, setCounts] = useState({ companies: 0, transfers: 0 });
   const [stats, setStats] = useState(null);
   const [running, setRunning] = useState(false);
+  const [targetDay, setTargetDay] = useState(1);
 
   useEffect(() => {
     Promise.all([
@@ -19,11 +20,10 @@ export default function AdminDashboard() {
   }, []);
 
   const handleRunScheduler = async () => {
-    if (!confirm(`오늘(${new Date().getDate()}일) 자동이체를 실행할까요?`)) return;
+    if (!confirm(`${targetDay}일 자동이체를 실행할까요?`)) return;
     setRunning(true);
     try {
-      const today = new Date().getDate();
-      await runAdminScheduler(today);
+      await runAdminScheduler(targetDay);
       alert('자동이체 실행 완료!');
       getAdminStats().then(r => setStats(r.data)).catch(() => {});
     } catch (e) {
@@ -83,12 +83,25 @@ export default function AdminDashboard() {
               {stats ? `${stats.failCount}건` : '-'}
             </p>
           </div>
-          <button
-            onClick={handleRunScheduler}
-            disabled={running}
-            className="w-full bg-violet-600 text-white py-3 rounded-2xl font-semibold hover:bg-violet-700 transition disabled:opacity-50">
-            {running ? '실행 중...' : '▶ 자동이체 실행 (시연)'}
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <label className="block text-xs text-slate-500 mb-1">청구일 (1~28)</label>
+              <input
+                type="number"
+                min={1}
+                max={28}
+                value={targetDay}
+                onChange={e => setTargetDay(Number(e.target.value))}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-center font-semibold"
+              />
+            </div>
+            <button
+              onClick={handleRunScheduler}
+              disabled={running}
+              className="flex-[2] bg-violet-600 text-white py-3 rounded-2xl font-semibold hover:bg-violet-700 transition disabled:opacity-50 mt-4">
+              {running ? '실행 중...' : '▶ 자동이체 실행 (시연)'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

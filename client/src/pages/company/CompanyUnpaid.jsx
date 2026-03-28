@@ -50,7 +50,7 @@ export default function CompanyUnpaid() {
             )}
             {unpaid.map(u => (
               <tr key={u.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50">
-                <td className="px-5 py-3 text-slate-500">{new Date(u.billed_at).toLocaleDateString('ko-KR')}</td>
+                <td className="px-5 py-3 text-slate-500">{new Date(u.executed_at).toLocaleDateString('ko-KR')}</td>
                 <td className="px-5 py-3 text-slate-700">{u.user_nickname}</td>
                 <td className="px-5 py-3 text-slate-700">{u.product_name}</td>
                 <td className="px-5 py-3 font-medium text-slate-900">{Number(u.amount).toLocaleString()}원</td>
