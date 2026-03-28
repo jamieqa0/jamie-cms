@@ -98,11 +98,21 @@ const refresh = async (req, res) => {
     const newRefreshToken = signRefreshToken({ userId: decoded.userId, role: decoded.role });
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    await pool.query(`UPDATE refresh_tokens SET revoked = true WHERE token = $1`, [refreshToken]);
-    await pool.query(
-      `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
-      [decoded.userId, newRefreshToken, expiresAt]
-    );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(`UPDATE refresh_tokens SET revoked = true WHERE token = $1`, [refreshToken]);
+      await client.query(
+        `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
+        [decoded.userId, newRefreshToken, expiresAt]
+      );
+      await client.query('COMMIT');
+    } catch (txErr) {
+      await client.query('ROLLBACK');
+      throw txErr;
+    } finally {
+      client.release();
+    }
 
     res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
   } catch (err) {
