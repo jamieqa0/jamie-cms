@@ -1,0 +1,77 @@
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
+import { getCompanyProduct, createCompanyProduct, updateCompanyProduct } from '../../api/company';
+
+export default function CompanyProductForm() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const isEdit = Boolean(id);
+  const [form, setForm] = useState({ name: '', amount: '', billing_day: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isEdit) return;
+    getCompanyProduct(id).then(p => setForm({ name: p.name, amount: p.amount, billing_day: p.billing_day })).catch(() => {});
+  }, [id, isEdit]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    const day = Number(form.billing_day);
+    if (day < 1 || day > 28) { setError('결제일은 1~28 사이여야 합니다.'); return; }
+    setLoading(true);
+    try {
+      const payload = { name: form.name, amount: Number(form.amount), billing_day: day };
+      if (isEdit) await updateCompanyProduct(id, payload);
+      else await createCompanyProduct(user.id, payload);
+      navigate('/company/products');
+    } catch (err) {
+      setError(err.message || '저장 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-md space-y-6">
+      <h1 className="text-2xl font-bold text-slate-900">{isEdit ? '상품 수정' : '상품 등록'}</h1>
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">상품명</label>
+          <input type="text" required value={form.name}
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="월간 구독권" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">금액 (원)</label>
+          <input type="number" required min="1" value={form.amount}
+            onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="29900" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">결제일 (1~28)</label>
+          <input type="number" required min="1" max="28" value={form.billing_day}
+            onChange={e => setForm(f => ({ ...f, billing_day: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="15" />
+        </div>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <div className="flex gap-3 pt-2">
+          <button type="button" onClick={() => navigate('/company/products')}
+            className="flex-1 border border-slate-200 text-slate-600 rounded-lg py-2 text-sm hover:bg-slate-50 transition">
+            취소
+          </button>
+          <button type="submit" disabled={loading}
+            className="flex-1 bg-emerald-600 text-white rounded-lg py-2 text-sm font-semibold hover:bg-emerald-700 transition disabled:opacity-50">
+            {loading ? '저장 중...' : (isEdit ? '수정 저장' : '등록')}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
