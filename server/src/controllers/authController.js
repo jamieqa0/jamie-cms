@@ -94,8 +94,17 @@ const refresh = async (req, res) => {
     );
     if (!result.rows[0]) return res.status(401).json({ error: 'Invalid or expired refresh token' });
 
-    const accessToken = signAccessToken({ userId: decoded.userId, role: decoded.role });
-    res.json({ accessToken });
+    const newAccessToken = signAccessToken({ userId: decoded.userId, role: decoded.role });
+    const newRefreshToken = signRefreshToken({ userId: decoded.userId, role: decoded.role });
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    await pool.query(`UPDATE refresh_tokens SET revoked = true WHERE token = $1`, [refreshToken]);
+    await pool.query(
+      `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
+      [decoded.userId, newRefreshToken, expiresAt]
+    );
+
+    res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
   } catch (err) {
     res.status(401).json({ error: 'Invalid refresh token' });
   }
