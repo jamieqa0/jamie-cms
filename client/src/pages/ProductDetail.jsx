@@ -4,12 +4,19 @@ import { getProduct } from '../api/products';
 import { getAccounts } from '../api/accounts';
 import { createSubscription } from '../api/subscriptions';
 
+const PAYMENT_METHODS = [
+  { value: 'account', label: '계좌이체', available: true },
+  { value: 'card', label: '신용카드', available: false },
+  { value: 'phone', label: '휴대폰 결제', available: false },
+];
+
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('account');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -18,10 +25,13 @@ export default function ProductDetail() {
   }, [id]);
 
   const handleSubscribe = async () => {
-    if (!selectedAccount) { alert('계좌를 선택해주세요'); return; }
+    if (paymentMethod === 'account' && !selectedAccount) {
+      alert('출금 계좌를 선택해주세요');
+      return;
+    }
     setLoading(true);
     try {
-      await createSubscription(id, selectedAccount);
+      await createSubscription(id, selectedAccount, paymentMethod);
       alert('구독이 완료되었어요!');
       navigate('/subscriptions');
     } catch (e) {
@@ -48,26 +58,53 @@ export default function ProductDetail() {
           <p className="text-slate-500 text-sm pt-2 border-t border-slate-100">{product.description}</p>
         )}
       </div>
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-3">
-        <h2 className="font-semibold text-slate-900">결제 계좌 선택</h2>
-        <select
-          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
-          value={selectedAccount}
-          onChange={e => setSelectedAccount(e.target.value)}
-        >
-          <option value="">계좌를 선택하세요</option>
-          {accounts.map(a => (
-            <option key={a.id} value={a.id}>
-              {a.name} ({Number(a.balance).toLocaleString()}원)
-            </option>
+
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-4">
+        <h2 className="font-semibold text-slate-900">결제수단 선택</h2>
+        <div className="grid grid-cols-3 gap-2">
+          {PAYMENT_METHODS.map(m => (
+            <button
+              key={m.value}
+              onClick={() => m.available && setPaymentMethod(m.value)}
+              disabled={!m.available}
+              className={`py-2.5 rounded-lg text-sm font-medium border transition
+                ${!m.available
+                  ? 'border-slate-100 text-slate-300 bg-slate-50 cursor-not-allowed'
+                  : paymentMethod === m.value
+                    ? 'border-slate-900 bg-slate-900 text-white'
+                    : 'border-slate-200 text-slate-700 hover:border-slate-400'
+                }`}
+            >
+              {m.label}
+              {!m.available && <span className="block text-xs font-normal">준비 중</span>}
+            </button>
           ))}
-        </select>
+        </div>
+
+        {paymentMethod === 'account' && (
+          <div className="space-y-2">
+            <p className="text-sm text-slate-500">출금 계좌</p>
+            <select
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+              value={selectedAccount}
+              onChange={e => setSelectedAccount(e.target.value)}
+            >
+              <option value="">계좌를 선택하세요</option>
+              {accounts.filter(a => a.type !== 'collection').map(a => (
+                <option key={a.id} value={a.id}>
+                  {a.name} ({Number(a.balance).toLocaleString()}원)
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <button
           onClick={handleSubscribe}
           disabled={loading}
-          className="w-full bg-slate-900 text-white py-2.5 rounded-lg font-medium hover:bg-slate-700 transition"
+          className="w-full bg-slate-900 text-white py-2.5 rounded-lg font-medium hover:bg-slate-700 transition disabled:opacity-50"
         >
-          구독 신청
+          {loading ? '처리 중...' : '구독 신청'}
         </button>
       </div>
     </div>

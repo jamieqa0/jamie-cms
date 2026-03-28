@@ -19,7 +19,7 @@ const getSubscriptions = async (req, res) => {
 
 const createSubscription = async (req, res) => {
   try {
-    const { product_id, account_id } = req.body;
+    const { product_id, account_id, payment_method = 'account' } = req.body;
     if (!product_id || !account_id) {
       return res.status(400).json({ error: 'product_id and account_id are required' });
     }
@@ -37,8 +37,8 @@ const createSubscription = async (req, res) => {
     if (dup.rows.length > 0) return res.status(409).json({ error: 'Already subscribed' });
 
     const result = await pool.query(
-      `INSERT INTO subscriptions (user_id, product_id, account_id) VALUES ($1, $2, $3) RETURNING *`,
-      [req.user.userId, product_id, account_id]
+      `INSERT INTO subscriptions (user_id, product_id, account_id, payment_method) VALUES ($1, $2, $3, $4) RETURNING *`,
+      [req.user.userId, product_id, account_id, payment_method]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
