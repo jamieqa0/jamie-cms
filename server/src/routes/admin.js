@@ -13,4 +13,9 @@ router.post('/products', c.createProduct);
 router.put('/products/:id', c.updateProduct);
 router.delete('/products/:id', c.deleteProduct);
 
+router.get('/stats', c.getStats);
+router.get('/unpaid', c.getUnpaid);
+router.post('/unpaid/:id/retry', c.retryBilling);
+router.post('/scheduler/run', c.adminRunScheduler);
+
 module.exports = router;
