@@ -207,13 +207,21 @@ BEGIN
 
   v_settlement_amount := FLOOR(v_amount * (1 - v_commission_rate / 100.0))::BIGINT;
 
-  -- ① invoice INSERT (issued)
+  -- ① invoice: 기존 issued 있으면 재사용, 없으면 신규 생성
   v_supply := FLOOR(v_amount / 1.1)::BIGINT;
   v_vat    := v_amount - v_supply;
 
-  INSERT INTO invoices (subscription_id, amount, supply_amount, vat, status)
-  VALUES (v_subscription_id, v_amount, v_supply, v_vat, 'issued')
-  RETURNING id INTO v_invoice_id;
+  SELECT id INTO v_invoice_id
+  FROM invoices
+  WHERE subscription_id = v_subscription_id AND status = 'issued'
+  ORDER BY issued_at DESC
+  LIMIT 1;
+
+  IF v_invoice_id IS NULL THEN
+    INSERT INTO invoices (subscription_id, amount, supply_amount, vat, status)
+    VALUES (v_subscription_id, v_amount, v_supply, v_vat, 'issued')
+    RETURNING id INTO v_invoice_id;
+  END IF;
 
   -- 잠금 순서: 유저계좌 → 집금계좌 → 업체계좌 (데드락 방지)
   SELECT balance INTO v_balance
