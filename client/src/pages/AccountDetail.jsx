@@ -1,19 +1,33 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAccount, deposit, withdraw, deleteAccount } from '../api/accounts';
-import { getInvoiceById } from '../api/invoices';
+import { getUserInvoices } from '../api/invoices';
+import { useAuthStore } from '../store/authStore';
 import InvoiceModal from '../components/InvoiceModal';
+import ReceiptModal from '../components/ReceiptModal';
 
 export default function AccountDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [account, setAccount] = useState(null);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
+  const [invoiceMap, setInvoiceMap] = useState({});
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
 
   const load = () => getAccount(id).then(r => setAccount(r.data));
   useEffect(() => { load(); }, [id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    getUserInvoices(user.id).then(list => {
+      const map = {};
+      list.forEach(inv => { map[inv.id] = inv; });
+      setInvoiceMap(map);
+    }).catch(() => {});
+  }, [user?.id]);
 
   const handleDeposit = async () => {
     if (!amount) return;
@@ -44,15 +58,6 @@ export default function AccountDetail() {
       navigate('/accounts');
     } catch (e) {
       alert(e.response?.data?.error || '삭제 실패');
-    }
-  };
-
-  const handleOpenInvoice = async (invoiceId) => {
-    try {
-      const inv = await getInvoiceById(invoiceId);
-      setSelectedInvoice(inv);
-    } catch {
-      alert('청구서를 불러올 수 없습니다.');
     }
   };
 
@@ -94,31 +99,51 @@ export default function AccountDetail() {
           <p className="text-slate-400 text-sm">거래 내역이 없어요.</p>
         ) : (
           <ul className="space-y-2">
-            {account.transactions?.map(t => (
-              <li key={t.id} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-600 text-sm">{t.description || t.type}</span>
-                  {t.invoice_id && (
-                    <button
-                      onClick={() => handleOpenInvoice(t.invoice_id)}
-                      className="text-slate-400 hover:text-emerald-600 transition text-base leading-none"
-                      title="청구서 보기"
-                    >
-                      📄
-                    </button>
-                  )}
-                </div>
-                <span className={`text-sm font-medium ${t.type === 'deposit' ? 'text-blue-600' : 'text-red-500'}`}>
-                  {t.type === 'deposit' ? '+' : '-'}{Number(t.amount).toLocaleString()}원
-                </span>
-              </li>
-            ))}
+            {account.transactions?.map(t => {
+              const invoice = t.invoice_id ? invoiceMap[t.invoice_id] : null;
+              return (
+                <li key={t.id} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-600 text-sm">{t.description || t.type}</span>
+                      {invoice && (
+                        <button
+                          onClick={() => setSelectedInvoice(invoice)}
+                          className="text-slate-400 hover:text-emerald-600 transition text-base leading-none"
+                          title="청구서 보기"
+                        >
+                          📄
+                        </button>
+                      )}
+                      {invoice?.status === 'paid' && (
+                        <button
+                          onClick={() => setSelectedReceipt(invoice)}
+                          className="text-slate-400 hover:text-blue-600 transition text-base leading-none"
+                          title="영수증 보기"
+                        >
+                          🧾
+                        </button>
+                      )}
+                    </div>
+                    {invoice?.company_name && (
+                      <span className="text-xs text-slate-400">{invoice.company_name}</span>
+                    )}
+                  </div>
+                  <span className={`text-sm font-medium ${t.type === 'deposit' ? 'text-blue-600' : 'text-red-500'}`}>
+                    {t.type === 'deposit' ? '+' : '-'}{Number(t.amount).toLocaleString()}원
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
 
       {selectedInvoice && (
         <InvoiceModal invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
+      )}
+      {selectedReceipt && (
+        <ReceiptModal invoice={selectedReceipt} onClose={() => setSelectedReceipt(null)} />
       )}
     </div>
   );
