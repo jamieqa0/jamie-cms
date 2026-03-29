@@ -70,6 +70,12 @@ export const retryBilling = async (id) => {
   return { data };
 };
 
+export const retryBillingBulk = async (ids) => {
+  const { data, error } = await supabase.rpc('retry_billing_bulk', { log_ids: ids });
+  if (error) throw { response: { data: { error: error.message } } };
+  return { data };
+};
+
 export const getCollectionStats = async () => {
   const { data } = await supabase.rpc('get_collection_stats');
   return { data };
