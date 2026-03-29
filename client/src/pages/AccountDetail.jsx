@@ -50,13 +50,7 @@ export default function AccountDetail() {
   const handleOpenInvoice = async (invoiceId) => {
     try {
       const inv = await getInvoiceById(invoiceId);
-      const product = inv.subscriptions?.products;
-      const companyUser = product?.['users'];
-      setSelectedInvoice({
-        ...inv,
-        company_name: companyUser?.nickname ?? '-',
-        product_name: product?.name ?? '-',
-      });
+      setSelectedInvoice(inv);
     } catch {
       alert('청구서를 불러올 수 없습니다.');
     }

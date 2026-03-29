@@ -7,11 +7,9 @@ export const getUserInvoices = async (userId) => {
 };
 
 export const getInvoiceById = async (invoiceId) => {
-  const { data, error } = await supabase
-    .from('invoices')
-    .select('*, subscriptions(id, products(name, company_id, users!products_company_id_fkey(nickname)))')
-    .eq('id', invoiceId)
-    .single();
-  if (error) throw error;
-  return data;
+  const { data: { user } } = await supabase.auth.getUser();
+  const invoices = await getUserInvoices(user.id);
+  const inv = invoices?.find(i => i.id === invoiceId);
+  if (!inv) throw new Error('청구서를 찾을 수 없습니다.');
+  return inv;
 };
