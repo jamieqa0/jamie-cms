@@ -14,6 +14,7 @@ export default function ConsentPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('account');
   const [done, setDone] = useState(false);
 
   // 동의 요청 정보 로드 (로그인 여부 무관)
@@ -30,7 +31,7 @@ export default function ConsentPage() {
     if (!session || !user) return;
     supabase
       .from('accounts')
-      .select('id, balance')
+      .select('id, name, balance')
       .eq('user_id', user.id)
       .eq('type', 'personal')
       .then(({ data }) => {
@@ -38,6 +39,11 @@ export default function ConsentPage() {
         if (data?.length > 0) setSelectedAccount(data[0].id);
       });
   }, [session, user]);
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
 
   const handleKakaoLogin = () => {
     sessionStorage.setItem('consentToken', token);
@@ -49,6 +55,15 @@ export default function ConsentPage() {
         queryParams: { scope: 'profile_nickname profile_image' },
       },
     });
+  };
+
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    setLoginLoading(true);
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInError) setLoginError(signInError.message);
+    setLoginLoading(false);
   };
 
   const handleAccept = async () => {
@@ -77,6 +92,18 @@ export default function ConsentPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <p className="text-slate-500">이미 처리된 동의 요청입니다.</p>
+      </div>
+    );
+  }
+
+  if (request?.expires_at && new Date(request.expires_at) < new Date()) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center space-y-2 p-8 bg-white rounded-2xl shadow-sm border border-slate-100 max-w-sm w-full mx-4">
+          <p className="text-2xl">⏰</p>
+          <p className="font-bold text-slate-900">만료된 링크입니다</p>
+          <p className="text-slate-500 text-sm">동의 링크의 유효기간(30일)이 지났습니다.<br/>업체에 새 링크를 요청해주세요.</p>
+        </div>
       </div>
     );
   }
@@ -129,59 +156,126 @@ export default function ConsentPage() {
               <span className="text-slate-500">결제일</span>
               <span className="font-medium text-slate-900">매월 {request?.products?.billing_day}일</span>
             </div>
-            {request?.products?.invoice_day && (
-              <div className="flex justify-between py-2">
-                <span className="text-slate-500">청구서 발행일</span>
-                <span className="font-medium text-slate-900">매월 {request.products.invoice_day}일</span>
-              </div>
-            )}
+            <div className="flex justify-between py-2">
+              <span className="text-slate-500">청구서 발송예정일</span>
+              <span className="font-medium text-slate-900">
+                {request?.products?.invoice_day ? `매월 ${request.products.invoice_day}일` : '자동이체 실행일과 동일'}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* 비로그인: 카카오 로그인 유도 */}
+        {/* 비로그인: 로그인 유도 */}
         {!session && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-3">
-            <p className="text-sm text-slate-600 text-center">동의하려면 먼저 로그인해주세요.</p>
+            <p className="text-sm text-slate-600 text-center font-medium">동의하려면 먼저 로그인해주세요.</p>
             <button
               onClick={handleKakaoLogin}
               className="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition"
             >
-              카카오로 로그인하고 동의하기
+              카카오로 로그인
             </button>
+            <div className="flex items-center gap-2">
+              <hr className="flex-1 border-slate-200" />
+              <span className="text-xs text-slate-400">또는</span>
+              <hr className="flex-1 border-slate-200" />
+            </div>
+            <form onSubmit={handleEmailLogin} className="space-y-2">
+              <input
+                type="email"
+                placeholder="이메일"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+              <input
+                type="password"
+                placeholder="비밀번호"
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+              {loginError && <p className="text-red-500 text-xs">{loginError}</p>}
+              <button
+                type="submit"
+                disabled={loginLoading}
+                className="w-full bg-slate-800 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-900 transition disabled:opacity-50"
+              >
+                {loginLoading ? '로그인 중...' : '이메일로 로그인'}
+              </button>
+            </form>
           </div>
         )}
 
-        {/* 로그인 후: 계좌 선택 + 동의 버튼 */}
+        {/* 로그인 후: 결제수단 선택 + 동의 버튼 */}
         {session && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-3">
-            <p className="text-sm font-medium text-slate-700">출금 계좌 선택</p>
-            {accounts.length === 0 ? (
-              <div className="text-center space-y-3">
-                <p className="text-sm text-red-500">등록된 계좌가 없습니다.</p>
-                <a
-                  href="/accounts"
-                  className="inline-block w-full bg-slate-800 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-700 transition text-center"
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4">
+            <p className="text-sm font-bold text-slate-800">결제수단 선택</p>
+
+            {/* 결제수단 타입 탭 */}
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { key: 'account', label: '계좌이체', icon: '🏦' },
+                { key: 'card',    label: '카드',     icon: '💳' },
+                { key: 'phone',   label: '휴대폰결제', icon: '📱' },
+                { key: 'pay',     label: '간편페이',  icon: '⚡' },
+              ].map(m => (
+                <button
+                  key={m.key}
+                  onClick={() => setPaymentMethod(m.key)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition ${
+                    paymentMethod === m.key
+                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                      : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                  }`}
                 >
-                  계좌 등록하러 가기 →
-                </a>
-              </div>
-            ) : (
-              <select
-                value={selectedAccount}
-                onChange={e => setSelectedAccount(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                {accounts.map(a => (
-                  <option key={a.id} value={a.id}>
-                    계좌 ({Number(a.balance).toLocaleString()}원)
-                  </option>
-                ))}
-              </select>
+                  <span>{m.icon}</span>
+                  <span>{m.label}</span>
+                  {m.key !== 'account' && (
+                    <span className="ml-auto text-xs text-slate-300">준비중</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* 계좌이체 선택 시 */}
+            {paymentMethod === 'account' && (
+              accounts.length === 0 ? (
+                <div className="text-center space-y-3">
+                  <p className="text-sm text-red-500">등록된 계좌가 없습니다.</p>
+                  <a href="/accounts"
+                    className="inline-block w-full bg-slate-800 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-700 transition text-center">
+                    계좌 등록하러 가기 →
+                  </a>
+                </div>
+              ) : (
+                <select
+                  value={selectedAccount}
+                  onChange={e => setSelectedAccount(e.target.value)}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  {accounts.map(a => (
+                    <option key={a.id} value={a.id}>
+                      {a.name} ({Number(a.balance).toLocaleString()}원)
+                    </option>
+                  ))}
+                </select>
+              )
             )}
+
+            {/* 준비중 결제수단 선택 시 */}
+            {paymentMethod !== 'account' && (
+              <div className="bg-slate-50 rounded-xl px-4 py-3 text-center text-sm text-slate-400">
+                해당 결제수단은 현재 준비 중입니다.
+              </div>
+            )}
+
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <button
               onClick={handleAccept}
-              disabled={submitting || accounts.length === 0}
+              disabled={submitting || paymentMethod !== 'account' || accounts.length === 0}
               className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition disabled:opacity-50"
             >
               {submitting ? '처리 중...' : '동의하고 구독 시작'}

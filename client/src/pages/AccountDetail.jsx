@@ -6,6 +6,17 @@ import { useAuthStore } from '../store/authStore';
 import InvoiceModal from '../components/InvoiceModal';
 import ReceiptModal from '../components/ReceiptModal';
 
+function groupByDate(transactions) {
+  const groups = {};
+  (transactions || []).forEach(t => {
+    const d = new Date(t.created_at || t.executed_at || Date.now());
+    const key = d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(t);
+  });
+  return Object.entries(groups);
+}
+
 export default function AccountDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -61,81 +72,109 @@ export default function AccountDetail() {
     }
   };
 
-  if (!account) return <div className="p-6">로딩 중...</div>;
+  if (!account) return (
+    <div className="flex items-center justify-center py-20 text-slate-400 text-sm">로딩 중...</div>
+  );
+
+  const grouped = groupByDate(account.transactions);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">{account.name}</h1>
-        <button onClick={handleDelete} className="text-sm text-red-500 hover:text-red-700">계좌 삭제</button>
+        <h1 className="text-xl font-bold text-slate-900">{account.name}</h1>
+        <button onClick={handleDelete} className="text-xs text-slate-400 hover:text-red-500 transition">계좌 삭제</button>
       </div>
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-        <p className="text-slate-500 text-sm">잔액</p>
-        <p className="text-4xl font-bold text-slate-900 mt-1">{Number(account.balance).toLocaleString()}원</p>
+
+      {/* 잔액 카드 */}
+      <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg">
+        <p className="text-blue-200 text-xs font-medium uppercase tracking-wide">잔액</p>
+        <p className="text-4xl font-extrabold mt-1 tabular-nums">
+          {Number(account.balance).toLocaleString()}
+          <span className="text-xl font-semibold text-blue-200 ml-1">원</span>
+        </p>
       </div>
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-3">
-        <h2 className="font-semibold text-slate-900">입출금</h2>
+
+      {/* 입출금 */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-3">
+        <h2 className="font-bold text-slate-900">입출금</h2>
         <input
           type="number"
-          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+          className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="금액 입력"
           value={amount}
           onChange={e => setAmount(e.target.value)}
         />
         <div className="flex gap-2">
           <button onClick={handleDeposit} disabled={loading}
-            className="flex-1 bg-blue-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition">
-            입금
+            className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition disabled:opacity-50">
+            + 입금
           </button>
           <button onClick={handleWithdraw} disabled={loading}
-            className="flex-1 bg-slate-900 text-white py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition">
-            출금
+            className="flex-1 bg-slate-800 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-slate-900 active:scale-95 transition disabled:opacity-50">
+            - 출금
           </button>
         </div>
       </div>
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-        <h2 className="font-semibold text-slate-900 mb-4">거래 내역</h2>
+
+      {/* 거래내역 - 날짜 그룹핑 */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-50">
+          <h2 className="font-bold text-slate-900">거래 내역</h2>
+        </div>
         {account.transactions?.length === 0 ? (
-          <p className="text-slate-400 text-sm">거래 내역이 없어요.</p>
+          <p className="text-slate-400 text-sm px-5 py-8 text-center">거래 내역이 없어요.</p>
         ) : (
-          <ul className="space-y-2">
-            {account.transactions?.map(t => {
-              const invoice = t.invoice_id ? invoiceMap[t.invoice_id] : null;
-              return (
-                <li key={t.id} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
-                  <div className="flex flex-col gap-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-600 text-sm">{t.description || t.type}</span>
-                      {invoice && (
-                        <button
-                          onClick={() => setSelectedInvoice(invoice)}
-                          className="text-slate-400 hover:text-emerald-600 transition text-base leading-none"
-                          title="청구서 보기"
-                        >
-                          📄
-                        </button>
-                      )}
-                      {invoice?.status === 'paid' && (
-                        <button
-                          onClick={() => setSelectedReceipt(invoice)}
-                          className="text-slate-400 hover:text-blue-600 transition text-base leading-none"
-                          title="영수증 보기"
-                        >
-                          🧾
-                        </button>
-                      )}
-                    </div>
-                    {invoice?.company_name && (
-                      <span className="text-xs text-slate-400">{invoice.company_name}</span>
-                    )}
-                  </div>
-                  <span className={`text-sm font-medium ${t.type === 'deposit' ? 'text-blue-600' : 'text-red-500'}`}>
-                    {t.type === 'deposit' ? '+' : '-'}{Number(t.amount).toLocaleString()}원
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+          <div>
+            {grouped.map(([date, txns]) => (
+              <div key={date}>
+                <div className="px-5 py-2 bg-slate-50 border-b border-slate-100">
+                  <p className="text-xs font-semibold text-slate-400">{date}</p>
+                </div>
+                <ul>
+                  {txns.map(t => {
+                    const invoice = t.invoice_id ? invoiceMap[t.invoice_id] : null;
+                    const isDeposit = t.type === 'deposit';
+                    return (
+                      <li key={t.id} className="flex justify-between items-center px-5 py-3.5 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${isDeposit ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-500'}`}>
+                            {isDeposit ? '↓' : '↑'}
+                          </div>
+                          <div>
+                            <p className="text-slate-800 font-semibold text-sm">
+                              {t.description || (isDeposit ? '입금' : '출금')}
+                            </p>
+                            {invoice?.company_name && (
+                              <p className="text-slate-400 text-xs mt-0.5">{invoice.company_name}</p>
+                            )}
+                          </div>
+                          <div className="flex gap-1 ml-1">
+                            {invoice && (
+                              <button
+                                onClick={() => setSelectedInvoice(invoice)}
+                                className="text-slate-300 hover:text-emerald-500 transition text-sm"
+                                title="청구서 보기"
+                              >📄</button>
+                            )}
+                            {invoice?.status === 'paid' && (
+                              <button
+                                onClick={() => setSelectedReceipt(invoice)}
+                                className="text-slate-300 hover:text-blue-500 transition text-sm"
+                                title="영수증 보기"
+                              >🧾</button>
+                            )}
+                          </div>
+                        </div>
+                        <span className={`text-sm font-extrabold tabular-nums ${isDeposit ? 'text-blue-600' : 'text-red-500'}`}>
+                          {isDeposit ? '+' : '-'}{Number(t.amount).toLocaleString()}원
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 

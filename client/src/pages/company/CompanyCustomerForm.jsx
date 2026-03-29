@@ -68,6 +68,7 @@ export default function CompanyCustomerForm() {
             ))}
           </select>
         </div>
+        <p className="text-xs text-slate-400">생성된 링크는 30일 후 만료됩니다.</p>
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <div className="flex gap-3 pt-2">
           <button type="button" onClick={() => navigate('/company/customers')}

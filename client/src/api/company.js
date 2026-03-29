@@ -113,7 +113,7 @@ export const getCompanyAccount = async (companyId) => {
 export const getConsentRequest = async (token) => {
   const { data, error } = await supabase
     .from('consent_requests')
-    .select('*, products(name, amount, billing_day), users!company_id(nickname)')
+    .select('*, products(name, amount, billing_day, invoice_day), users!company_id(nickname)')
     .eq('invite_token', token)
     .single();
   if (error) throw error;
