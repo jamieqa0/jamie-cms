@@ -128,3 +128,17 @@ export const acceptConsent = async (token, accountId) => {
   if (error) throw error;
   return data;
 };
+
+// ── Invoices ──────────────────────────────────────────────
+
+export const getCompanyInvoices = async (companyId) => {
+  const { data, error } = await supabase.rpc('get_company_invoices', { p_company_id: companyId });
+  if (error) throw error;
+  return data;
+};
+
+export const createManualInvoice = async (subscriptionId) => {
+  const { data, error } = await supabase.rpc('create_invoice_manual', { p_subscription_id: subscriptionId });
+  if (error) throw error;
+  return data;
+};
