@@ -29,7 +29,9 @@ export default function CompanyProducts() {
           + 상품 등록
         </Link>
       </div>
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
+
+      {/* 데스크탑 테이블 */}
+      <div className="hidden sm:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="border-b border-slate-100">
             <tr className="text-slate-500 text-left">
@@ -58,6 +60,30 @@ export default function CompanyProducts() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* 모바일 카드 */}
+      <div className="sm:hidden space-y-2">
+        {products.length === 0 && (
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 border border-slate-100 text-sm">등록된 상품이 없습니다.</div>
+        )}
+        {products.map(p => (
+          <div key={p.id} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="font-semibold text-slate-900 text-sm">{p.name}</p>
+                <p className="text-slate-400 text-xs mt-0.5">매월 {p.billing_day}일</p>
+              </div>
+              <p className="font-bold text-slate-900 tabular-nums text-sm">{Number(p.amount).toLocaleString()}원</p>
+            </div>
+            <div className="flex gap-3 mt-3 pt-3 border-t border-slate-50">
+              <Link to={`/company/products/${p.id}`}
+                className="text-emerald-600 text-sm font-medium hover:underline">수정</Link>
+              <button onClick={() => handleDelete(p.id)}
+                className="text-red-400 text-sm font-medium hover:text-red-600">삭제</button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
