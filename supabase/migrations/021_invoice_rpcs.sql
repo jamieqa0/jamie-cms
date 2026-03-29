@@ -15,6 +15,7 @@ RETURNS TABLE (
   product_name    VARCHAR
 )
 LANGUAGE plpgsql
+SECURITY DEFINER
 AS $func$
 BEGIN
   RETURN QUERY
