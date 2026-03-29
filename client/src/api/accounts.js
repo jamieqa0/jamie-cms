@@ -24,7 +24,7 @@ export const createAccount = async (name) => {
 export const getAccount = async (id) => {
   const { data } = await supabase
     .from('accounts')
-    .select('*, transactions(id, type, amount, description, created_at)')
+    .select('*, transactions(id, type, amount, description, created_at, invoice_id)')
     .eq('id', id)
     .order('created_at', { referencedTable: 'transactions', ascending: false })
     .single();

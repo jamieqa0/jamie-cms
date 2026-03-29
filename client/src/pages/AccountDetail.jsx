@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAccount, deposit, withdraw, deleteAccount } from '../api/accounts';
+import { getInvoiceById } from '../api/invoices';
+import InvoiceModal from '../components/InvoiceModal';
 
 export default function AccountDetail() {
   const { id } = useParams();
@@ -8,6 +10,7 @@ export default function AccountDetail() {
   const [account, setAccount] = useState(null);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   const load = () => getAccount(id).then(r => setAccount(r.data));
   useEffect(() => { load(); }, [id]);
@@ -41,6 +44,21 @@ export default function AccountDetail() {
       navigate('/accounts');
     } catch (e) {
       alert(e.response?.data?.error || '삭제 실패');
+    }
+  };
+
+  const handleOpenInvoice = async (invoiceId) => {
+    try {
+      const inv = await getInvoiceById(invoiceId);
+      const product = inv.subscriptions?.products;
+      const companyUser = product?.['users'];
+      setSelectedInvoice({
+        ...inv,
+        company_name: companyUser?.nickname ?? '-',
+        product_name: product?.name ?? '-',
+      });
+    } catch {
+      alert('청구서를 불러올 수 없습니다.');
     }
   };
 
@@ -83,8 +101,19 @@ export default function AccountDetail() {
         ) : (
           <ul className="space-y-2">
             {account.transactions?.map(t => (
-              <li key={t.id} className="flex justify-between py-2 border-b border-slate-50 last:border-0">
-                <span className="text-slate-600 text-sm">{t.description || t.type}</span>
+              <li key={t.id} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-600 text-sm">{t.description || t.type}</span>
+                  {t.invoice_id && (
+                    <button
+                      onClick={() => handleOpenInvoice(t.invoice_id)}
+                      className="text-slate-400 hover:text-emerald-600 transition text-base leading-none"
+                      title="청구서 보기"
+                    >
+                      📄
+                    </button>
+                  )}
+                </div>
                 <span className={`text-sm font-medium ${t.type === 'deposit' ? 'text-blue-600' : 'text-red-500'}`}>
                   {t.type === 'deposit' ? '+' : '-'}{Number(t.amount).toLocaleString()}원
                 </span>
@@ -93,6 +122,10 @@ export default function AccountDetail() {
           </ul>
         )}
       </div>
+
+      {selectedInvoice && (
+        <InvoiceModal invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
+      )}
     </div>
   );
 }
