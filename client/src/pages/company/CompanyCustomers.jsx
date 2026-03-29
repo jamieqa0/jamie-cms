@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
-import { getCompanyCustomers, createManualInvoice } from '../../api/company';
+import { getCompanyCustomers, createManualInvoice, getCompanyInvoices } from '../../api/company';
 
 const STATUS_LABEL = { pending: '대기', accepted: '수락', rejected: '거절' };
 const STATUS_COLOR = { pending: 'text-yellow-600 bg-yellow-50', accepted: 'text-green-600 bg-green-50', rejected: 'text-red-600 bg-red-50' };
@@ -10,10 +10,17 @@ export default function CompanyCustomers() {
   const { user } = useAuthStore();
   const [customers, setCustomers] = useState([]);
   const [issuing, setIssuing] = useState(null);
+  const [issuedSet, setIssuedSet] = useState(new Set());
 
   const load = () => {
     if (!user?.id) return;
     getCompanyCustomers(user.id).then(setCustomers).catch(() => {});
+    getCompanyInvoices(user.id).then(list => {
+      const activeIds = new Set(
+        list.filter(inv => inv.status === 'issued').map(inv => inv.subscription_id)
+      );
+      setIssuedSet(activeIds);
+    }).catch(() => {});
   };
 
   useEffect(load, [user?.id]);
@@ -29,6 +36,7 @@ export default function CompanyCustomers() {
     try {
       await createManualInvoice(subscriptionId);
       alert('청구서가 발행되었습니다.');
+      setIssuedSet(prev => new Set(prev).add(subscriptionId));
     } catch (e) {
       alert(e.message || '청구서 발행 실패');
     } finally {
@@ -82,11 +90,15 @@ export default function CompanyCustomers() {
                   <td className="px-5 py-3 text-right">
                     {c.status === 'accepted' && subscriptionId && (
                       <button
-                        onClick={() => handleIssueInvoice(subscriptionId)}
-                        disabled={issuing === subscriptionId}
-                        className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg hover:bg-emerald-100 transition disabled:opacity-50"
+                        onClick={() => !issuedSet.has(subscriptionId) && handleIssueInvoice(subscriptionId)}
+                        disabled={issuing === subscriptionId || issuedSet.has(subscriptionId)}
+                        className={`text-xs px-3 py-1 rounded-lg transition disabled:opacity-50 ${
+                          issuedSet.has(subscriptionId)
+                            ? 'bg-slate-100 text-slate-400 cursor-default'
+                            : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                        }`}
                       >
-                        {issuing === subscriptionId ? '발행 중...' : '청구서 발행'}
+                        {issuing === subscriptionId ? '발행 중...' : issuedSet.has(subscriptionId) ? '발행됨' : '청구서 발행'}
                       </button>
                     )}
                   </td>
