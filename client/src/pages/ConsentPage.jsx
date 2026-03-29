@@ -123,6 +123,12 @@ export default function ConsentPage() {
               <span className="text-slate-500">결제일</span>
               <span className="font-medium text-slate-900">매월 {request?.products?.billing_day}일</span>
             </div>
+            {request?.products?.invoice_day && (
+              <div className="flex justify-between py-2">
+                <span className="text-slate-500">청구서 발행일</span>
+                <span className="font-medium text-slate-900">매월 {request.products.invoice_day}일</span>
+              </div>
+            )}
           </div>
         </div>
 

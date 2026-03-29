@@ -8,13 +8,20 @@ export default function CompanyProductForm() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const isEdit = Boolean(id);
-  const [form, setForm] = useState({ name: '', amount: '', billing_day: '', category: 'etc' });
+  const [form, setForm] = useState({ name: '', amount: '', billing_day: '', category: 'etc', description: '', invoice_day: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!isEdit) return;
-    getCompanyProduct(id).then(p => setForm({ name: p.name, amount: p.amount, billing_day: p.billing_day, category: p.category ?? 'etc' })).catch(() => {});
+    getCompanyProduct(id).then(p => setForm({
+      name: p.name,
+      amount: p.amount,
+      billing_day: p.billing_day,
+      category: p.category ?? 'etc',
+      description: p.description ?? '',
+      invoice_day: p.invoice_day != null ? String(p.invoice_day) : '',
+    })).catch(() => {});
   }, [id, isEdit]);
 
   const handleSubmit = async (e) => {
@@ -24,7 +31,14 @@ export default function CompanyProductForm() {
     if (day < 1 || day > 28) { setError('결제일은 1~28 사이여야 합니다.'); return; }
     setLoading(true);
     try {
-      const payload = { name: form.name, amount: Number(form.amount), billing_day: day, category: form.category };
+      const payload = {
+        name: form.name,
+        amount: Number(form.amount),
+        billing_day: day,
+        category: form.category,
+        description: form.description || null,
+        invoice_day: form.invoice_day ? Number(form.invoice_day) : null,
+      };
       if (isEdit) await updateCompanyProduct(id, payload);
       else await createCompanyProduct(user.id, payload);
       navigate('/company/products');
@@ -45,6 +59,13 @@ export default function CompanyProductForm() {
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             placeholder="월간 구독권" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">상품 설명</label>
+          <textarea rows={3} value={form.description}
+            onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+            placeholder="상품에 대한 설명을 입력하세요" />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">금액 (원)</label>
@@ -70,6 +91,16 @@ export default function CompanyProductForm() {
             onChange={e => setForm(f => ({ ...f, billing_day: e.target.value }))}
             className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             placeholder="15" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">청구서 발행일 <span className="text-slate-400 font-normal">(선택)</span></label>
+          <select value={form.invoice_day}
+            onChange={e => setForm(f => ({ ...f, invoice_day: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+            <option value="">미설정</option>
+            <option value="1">매월 1일</option>
+            <option value="15">매월 15일</option>
+          </select>
         </div>
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <div className="flex gap-3 pt-2">

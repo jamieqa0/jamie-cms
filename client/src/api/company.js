@@ -142,3 +142,13 @@ export const createManualInvoice = async (subscriptionId) => {
   if (error) throw error;
   return data;
 };
+
+export const getMyCompany = async (userId) => {
+  const { data, error } = await supabase
+    .from('companies')
+    .select('industry, commission_rate')
+    .eq('user_id', userId)
+    .single();
+  if (error) throw { response: { data: { error: error.message } } };
+  return data;
+};

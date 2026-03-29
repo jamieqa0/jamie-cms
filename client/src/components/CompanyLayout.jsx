@@ -39,6 +39,7 @@ export default function CompanyLayout() {
           <NavLink to="/company/customers" className={navClass}>고객 관리</NavLink>
           <NavLink to="/company/transfers" className={navClass}>수납 내역</NavLink>
           <NavLink to="/company/unpaid" className={navClass}>미수납 관리</NavLink>
+          <NavLink to="/company/profile" className={navClass}>프로필/정산</NavLink>
         </div>
       </nav>
       <main className="max-w-5xl mx-auto px-4 py-6 sm:px-6 sm:py-8">

@@ -28,9 +28,9 @@ export default function Layout() {
         </div>
         <div className="flex items-center gap-1 mt-2 overflow-x-auto pb-1">
           <NavLink to="/dashboard" className={navClass}>대시보드</NavLink>
+          <NavLink to="/subscriptions" className={navClass}>내 구독</NavLink>
+          <NavLink to="/invoices" className={navClass}>내 청구서</NavLink>
           <NavLink to="/products" className={navClass}>상품</NavLink>
-          <NavLink to="/subscriptions" className={navClass}>구독</NavLink>
-          <NavLink to="/accounts" className={navClass}>계좌</NavLink>
           {user?.role === 'admin' && (
             <NavLink to="/admin" className={navClass}>어드민</NavLink>
           )}

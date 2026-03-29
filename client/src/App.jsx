@@ -8,6 +8,7 @@ import Subscriptions from './pages/Subscriptions';
 import Accounts from './pages/Accounts';
 import AccountDetail from './pages/AccountDetail';
 import Profile from './pages/Profile';
+import Invoices from './pages/Invoices';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
@@ -30,6 +31,7 @@ import CompanyCustomers from './pages/company/CompanyCustomers';
 import CompanyCustomerForm from './pages/company/CompanyCustomerForm';
 import CompanyTransfers from './pages/company/CompanyTransfers';
 import CompanyUnpaid from './pages/company/CompanyUnpaid';
+import CompanyProfile from './pages/company/CompanyProfile';
 import ConsentPage from './pages/ConsentPage';
 
 export default function App() {
@@ -48,6 +50,7 @@ export default function App() {
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/accounts/:id" element={<AccountDetail />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/invoices" element={<Invoices />} />
           </Route>
           <Route element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
@@ -73,6 +76,7 @@ export default function App() {
               <Route path="/company/customers/new" element={<CompanyCustomerForm />} />
               <Route path="/company/transfers" element={<CompanyTransfers />} />
               <Route path="/company/unpaid" element={<CompanyUnpaid />} />
+              <Route path="/company/profile" element={<CompanyProfile />} />
             </Route>
           </Route>
         </Route>
