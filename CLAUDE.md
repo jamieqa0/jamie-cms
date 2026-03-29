@@ -41,7 +41,7 @@ VITE_SUPABASE_ANON_KEY=
 |------|------------|--------|
 | `admin` | 이메일/비밀번호 | `/admin` |
 | `company` | 이메일/비밀번호 | `/company` |
-| `user` | 카카오 OAuth | `/dashboard` |
+| `user` | 카카오 OAuth 또는 이메일/비밀번호 | `/dashboard` |
 
 role은 `auth.users`의 `raw_user_meta_data->>'role'` 에서 읽어 `public.users`에 동기화 (`003`, `013` 트리거).
 
@@ -53,9 +53,13 @@ role은 `auth.users`의 `raw_user_meta_data->>'role'` 에서 읽어 `public.user
 3. `AuthCallback` → `exchangeCodeForSession(code)` → `onAuthStateChange` 발생
 4. `authStore`에서 `public.users` 조회 후 role 기반 navigate
 
-**이메일 로그인 (admin/company)**:
+**이메일 로그인 (admin/company/user)**:
 1. `Landing` → `supabase.auth.signInWithPassword()`
 2. `onAuthStateChange` → authStore 업데이트 → `AuthCallback`과 동일한 useEffect가 navigate
+
+**이메일 회원가입 (user)**:
+- `Landing` 회원가입 탭 → `supabase.auth.signUp({ options: { data: { name, role: 'user' } } })`
+- 가입 후 이메일 인증 필요 (Supabase 이메일 확인 설정에 따라)
 
 **핵심**: navigate는 반드시 authStore의 `initializing: false` + `user` 확인 후 실행. `signInWithPassword` 직후 바로 navigate하면 안 됨.
 
@@ -94,19 +98,22 @@ await supabase.auth.setSession({ access_token: adminSession.access_token, refres
 ### 라우팅 구조 (`client/src/App.jsx`)
 
 ```
-/                           Landing (로그인)
+/                           Landing (로그인/회원가입)
 /auth/callback              OAuth 코드 교환
 /consent/:token             동의 페이지 (비로그인 접근 가능)
 (ProtectedRoute)
-  (Layout)
-    /dashboard, /products, /accounts, /subscriptions, /profile
+  (Layout)                  nav: 대시보드/내 구독/내 청구서/상품 + 프로필
+    /dashboard, /products, /accounts, /subscriptions, /invoices, /profile
   (AdminRoute)
     (AdminLayout)
       /admin, /admin/companies, /admin/transfers, /admin/collection
   (CompanyRoute)
     (CompanyLayout)
-      /company, /company/products, /company/customers, /company/transfers, /company/unpaid
+      /company, /company/products, /company/customers, /company/transfers,
+      /company/unpaid, /company/profile, /company/tax-invoices
 ```
+
+`/accounts`는 메뉴에서 제거됐지만 라우트는 유지 — Profile 페이지에서 링크로 접근.
 
 ### API 레이어 (`client/src/api/`)
 
@@ -116,10 +123,11 @@ await supabase.auth.setSession({ access_token: adminSession.access_token, refres
 | `accounts.js` | 계좌 CRUD |
 | `subscriptions.js` | 구독 CRUD (products join 포함) |
 | `products.js` | 상품 목록/상세 |
-| `admin.js` | 어드민 전용 (RPC 호출, Edge Function 호출) |
-| `company.js` | 업체 전용 (상품/고객/통계/정산계좌) |
+| `invoices.js` | `get_user_invoices` RPC 호출, `getInvoiceById` |
+| `admin.js` | 어드민 전용 (RPC 호출, Edge Function 호출, `retryBillingBulk`) |
+| `company.js` | 업체 전용 (상품/고객/통계/정산계좌/청구서/`getMyCompany`) |
 
-모든 Supabase 호출은 `client/src/lib/supabase.js`의 단일 인스턴스 사용. 컴포넌트에서 직접 supabase 호출 금지 (api/ 함수 경유).
+모든 Supabase 호출은 `client/src/lib/supabase.js`의 단일 인스턴스 사용. 컴포넌트에서 직접 supabase 호출 금지 (api/ 함수 경유). 단, `CompanyTaxInvoices.jsx`는 집계 쿼리 특성상 예외적으로 직접 호출.
 
 ## DB Schema
 

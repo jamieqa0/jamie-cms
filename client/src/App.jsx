@@ -32,6 +32,7 @@ import CompanyCustomerForm from './pages/company/CompanyCustomerForm';
 import CompanyTransfers from './pages/company/CompanyTransfers';
 import CompanyUnpaid from './pages/company/CompanyUnpaid';
 import CompanyProfile from './pages/company/CompanyProfile';
+import CompanyTaxInvoices from './pages/company/CompanyTaxInvoices';
 import ConsentPage from './pages/ConsentPage';
 
 export default function App() {
@@ -77,6 +78,7 @@ export default function App() {
               <Route path="/company/transfers" element={<CompanyTransfers />} />
               <Route path="/company/unpaid" element={<CompanyUnpaid />} />
               <Route path="/company/profile" element={<CompanyProfile />} />
+              <Route path="/company/tax-invoices" element={<CompanyTaxInvoices />} />
             </Route>
           </Route>
         </Route>

@@ -20,7 +20,7 @@ export default function AdminLayout() {
       <nav className="bg-violet-900 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="font-bold text-white">Jamie CMS</span>
+            <span className="font-bold text-white">제이미 정기납부 메이트</span>
             <span className="text-xs bg-violet-600 text-white px-2 py-0.5 rounded-full">어드민</span>
           </div>
           <div className="flex items-center gap-2">
@@ -30,6 +30,12 @@ export default function AdminLayout() {
               className="text-sm text-violet-300 hover:text-white px-2 py-2 transition"
             >
               사용자 화면
+            </NavLink>
+            <NavLink
+              to="/company"
+              className="text-sm text-violet-300 hover:text-white px-2 py-2 transition"
+            >
+              업체 화면
             </NavLink>
             <button
               onClick={handleLogout}

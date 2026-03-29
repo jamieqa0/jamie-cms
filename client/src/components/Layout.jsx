@@ -19,7 +19,7 @@ export default function Layout() {
     <div className="min-h-screen bg-slate-50">
       <nav className="bg-white border-b border-slate-200 px-4 py-3">
         <div className="flex items-center justify-between">
-          <span className="font-bold text-slate-900">Jamie CMS</span>
+          <span className="font-bold text-slate-900">제이미 정기납부 메이트</span>
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-500 hidden sm:block">{user?.nickname}</span>
             <NavLink to="/profile" className={navClass}>프로필</NavLink>

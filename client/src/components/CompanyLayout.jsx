@@ -20,7 +20,7 @@ export default function CompanyLayout() {
       <nav className="bg-emerald-900 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="font-bold text-white">Jamie CMS</span>
+            <span className="font-bold text-white">제이미 정기납부 메이트</span>
             <span className="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-full">업체</span>
           </div>
           <div className="flex items-center gap-2">
@@ -40,6 +40,7 @@ export default function CompanyLayout() {
           <NavLink to="/company/transfers" className={navClass}>수납 내역</NavLink>
           <NavLink to="/company/unpaid" className={navClass}>미수납 관리</NavLink>
           <NavLink to="/company/profile" className={navClass}>프로필/정산</NavLink>
+          <NavLink to="/company/tax-invoices" className={navClass}>수수료 세금계산서</NavLink>
         </div>
       </nav>
       <main className="max-w-5xl mx-auto px-4 py-6 sm:px-6 sm:py-8">

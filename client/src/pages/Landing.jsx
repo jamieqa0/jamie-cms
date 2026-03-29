@@ -69,7 +69,7 @@ export default function Landing() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-slate-900">Jamie CMS</h1>
+          <h1 className="text-4xl font-bold text-slate-900">제이미 정기납부 메이트</h1>
           <p className="text-slate-500 text-sm">정기결제 자동이체 관리 서비스</p>
         </div>
 

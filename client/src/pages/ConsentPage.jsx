@@ -115,6 +115,12 @@ export default function ConsentPage() {
               <span className="text-slate-500">상품명</span>
               <span className="font-medium text-slate-900">{request?.products?.name}</span>
             </div>
+            {request?.products?.description && (
+              <div className="flex flex-col py-2 gap-1">
+                <span className="text-slate-500">상품 설명</span>
+                <span className="text-slate-700 whitespace-pre-wrap">{request.products.description}</span>
+              </div>
+            )}
             <div className="flex justify-between py-2">
               <span className="text-slate-500">결제 금액</span>
               <span className="font-bold text-slate-900">{Number(request?.products?.amount).toLocaleString()}원</span>
