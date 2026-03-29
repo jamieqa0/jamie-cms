@@ -6,15 +6,17 @@ export const getAdminUsers = async () => {
 };
 
 export const getAdminTransfers = async () => {
-  const { data } = await supabase.rpc('get_admin_transfers');
+  const { data, error } = await supabase.rpc('get_admin_transfers');
+  if (error) throw error;
   return { data };
 };
 
 export const getAdminProducts = async () => {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('products')
     .select('*')
     .order('created_at', { ascending: false });
+  if (error) throw error;
   return { data };
 };
 
@@ -55,7 +57,8 @@ export const deleteProduct = async (id) => {
 };
 
 export const getAdminStats = async () => {
-  const { data } = await supabase.rpc('get_admin_stats');
+  const { data, error } = await supabase.rpc('get_admin_stats');
+  if (error) throw error;
   return { data };
 };
 

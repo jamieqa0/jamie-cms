@@ -2,32 +2,35 @@ import { supabase } from '../lib/supabase';
 
 export const getAccounts = async () => {
   const { data: { user } } = await supabase.auth.getUser();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('accounts')
     .select('*')
     .eq('user_id', user.id)
     .eq('type', 'personal')
     .order('created_at');
+  if (error) throw error;
   return { data };
 };
 
 export const createAccount = async (name) => {
   const { data: { user } } = await supabase.auth.getUser();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('accounts')
     .insert({ user_id: user.id, name, type: 'personal' })
     .select()
     .single();
+  if (error) throw error;
   return { data };
 };
 
 export const getAccount = async (id) => {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('accounts')
     .select('*, transactions(id, type, amount, description, created_at, invoice_id)')
     .eq('id', id)
     .order('created_at', { referencedTable: 'transactions', ascending: false })
     .single();
+  if (error) throw error;
   return { data };
 };
 
@@ -44,9 +47,10 @@ export const withdraw = async (id, amount) => {
 };
 
 export const deleteAccount = async (id) => {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('accounts')
     .delete()
     .eq('id', id);
+  if (error) throw error;
   return { data };
 };

@@ -4,26 +4,10 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { getSubscriptions } from '../api/subscriptions';
 import { getUserInvoices } from '../api/invoices';
 import { useAuthStore } from '../store/authStore';
+import { buildMonthlyChart } from '../utils/chartUtils';
 
 const INV_STATUS_COLOR = { issued: 'text-amber-700 bg-amber-50 border-amber-200', paid: 'text-emerald-700 bg-emerald-50 border-emerald-200', failed: 'text-red-700 bg-red-50 border-red-200' };
 const INV_STATUS_LABEL = { issued: '미납', paid: '납부완료', failed: '실패' };
-
-function buildMonthlyChart(invoices) {
-  const map = {};
-  const now = new Date();
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const label = `${d.getMonth() + 1}월`;
-    map[key] = { month: label, amount: 0, current: i === 0 };
-  }
-  invoices.filter(i => i.status === 'paid').forEach(inv => {
-    const d = new Date(inv.issued_at);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    if (map[key]) map[key].amount += Number(inv.amount);
-  });
-  return Object.values(map);
-}
 
 export default function Dashboard() {
   const { user } = useAuthStore();

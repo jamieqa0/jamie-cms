@@ -3,22 +3,7 @@ import { Link } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { getAdminTransfers, getAdminStats, runAdminScheduler } from '../../api/admin';
 import { supabase } from '../../lib/supabase';
-
-function buildMonthlyChart(transfers) {
-  const map = {};
-  const now = new Date();
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    map[key] = { month: `${d.getMonth() + 1}월`, amount: 0, current: i === 0 };
-  }
-  (transfers || []).filter(t => t.status === 'success').forEach(t => {
-    const d = new Date(t.executed_at);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    if (map[key]) map[key].amount += Number(t.amount || 0);
-  });
-  return Object.values(map);
-}
+import { buildMonthlyTransferChart } from '../../utils/chartUtils';
 
 export default function AdminDashboard() {
   const [counts, setCounts] = useState({ companies: 0, transfers: 0 });
@@ -52,7 +37,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const chartData = buildMonthlyChart(transfers);
+  const chartData = buildMonthlyTransferChart(transfers);
   const hasChartData = chartData.some(d => d.amount > 0);
 
   return (

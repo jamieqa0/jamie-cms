@@ -5,17 +5,7 @@ import { getUserInvoices } from '../api/invoices';
 import { useAuthStore } from '../store/authStore';
 import InvoiceModal from '../components/InvoiceModal';
 import ReceiptModal from '../components/ReceiptModal';
-
-function groupByDate(transactions) {
-  const groups = {};
-  (transactions || []).forEach(t => {
-    const d = new Date(t.created_at || t.executed_at || Date.now());
-    const key = d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(t);
-  });
-  return Object.entries(groups);
-}
+import { groupByDate } from '../utils/transactionUtils';
 
 export default function AccountDetail() {
   const { id } = useParams();
