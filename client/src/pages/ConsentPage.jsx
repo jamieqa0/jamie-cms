@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { getConsentRequest, acceptConsent } from '../api/company';
 import { supabase } from '../lib/supabase';
@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 export default function ConsentPage() {
   const { token } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, session, initializing } = useAuthStore();
   const [request, setRequest] = useState(null);
   const [accounts, setAccounts] = useState([]);
@@ -16,6 +17,17 @@ export default function ConsentPage() {
   const [error, setError] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('account');
   const [done, setDone] = useState(false);
+
+  // 동의 URL 접속 시 기존 세션 종료 (fromAuth 플래그 있으면 OAuth 복귀이므로 스킵)
+  useEffect(() => {
+    if (location.state?.fromAuth) return;
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      if (s) {
+        sessionStorage.setItem('consentToken', token);
+        supabase.auth.signOut();
+      }
+    });
+  }, [token, location.state?.fromAuth]);
 
   // 동의 요청 정보 로드 (로그인 여부 무관)
   useEffect(() => {

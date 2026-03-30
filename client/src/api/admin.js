@@ -79,8 +79,9 @@ export const retryBillingBulk = async (ids) => {
   return { data };
 };
 
-export const getCollectionStats = async () => {
-  const { data } = await supabase.rpc('get_collection_stats');
+export const getCollectionStats = async (month = null) => {
+  const params = month ? { p_month: month } : {};
+  const { data } = await supabase.rpc('get_collection_stats', params);
   return { data };
 };
 

@@ -1,10 +1,26 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 
+const INACTIVITY_MS = 10 * 60 * 1000; // 10분
+const ACTIVITY_EVENTS = ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'];
+
+let inactivityTimer = null;
+
+const clearInactivity = () => clearTimeout(inactivityTimer);
+
+const resetInactivity = () => {
+  clearInactivity();
+  if (useAuthStore.getState().session) {
+    inactivityTimer = setTimeout(async () => {
+      await supabase.auth.signOut();
+    }, INACTIVITY_MS);
+  }
+};
+
 export const useAuthStore = create((set) => ({
   user: null,
   session: null,
-  initializing: true, // onAuthStateChange 첫 응답 전까지 true
+  initializing: true,
   setUser: (user) => set({ user }),
   logout: async () => {
     await supabase.auth.signOut();
@@ -15,6 +31,13 @@ export const useAuthStore = create((set) => ({
 supabase.auth.onAuthStateChange((event, session) => {
   if (session) {
     useAuthStore.setState({ session });
+
+    // 비활동 타이머 시작
+    ACTIVITY_EVENTS.forEach(e =>
+      window.addEventListener(e, resetInactivity, { passive: true })
+    );
+    resetInactivity();
+
     // setTimeout(0): Supabase 내부 잠금 해제 후 DB 쿼리 실행 (데드락 방지)
     setTimeout(async () => {
       try {
@@ -45,6 +68,11 @@ supabase.auth.onAuthStateChange((event, session) => {
       }
     }, 0);
   } else {
+    // 세션 종료 시 타이머 및 리스너 정리
+    clearInactivity();
+    ACTIVITY_EVENTS.forEach(e =>
+      window.removeEventListener(e, resetInactivity)
+    );
     useAuthStore.setState({ session: null, user: null, initializing: false });
   }
 });

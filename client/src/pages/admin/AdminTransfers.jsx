@@ -22,7 +22,7 @@ export default function AdminTransfers() {
             <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
               <tr>
                 <th className="px-4 py-3 text-left">회원</th>
-                <th className="px-4 py-3 text-left">상품</th>
+                <th className="px-4 py-3 text-left">상품 / 업체</th>
                 <th className="px-4 py-3 text-right">금액</th>
                 <th className="px-4 py-3 text-center">결과</th>
                 <th className="px-4 py-3 text-left">사유</th>
@@ -33,7 +33,10 @@ export default function AdminTransfers() {
               {logs.map(l => (
                 <tr key={l.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3 text-slate-700">{l.nickname}</td>
-                  <td className="px-4 py-3 text-slate-700">{l.product_name}</td>
+                  <td className="px-4 py-3">
+                    <p className="text-slate-700">{l.product_name}</p>
+                    {l.company_name && <p className="text-slate-400 text-xs mt-0.5">{l.company_name}</p>}
+                  </td>
                   <td className="px-4 py-3 text-right font-medium">{Number(l.amount).toLocaleString()}원</td>
                   <td className="px-4 py-3 text-center"><StatusBadge status={l.status} /></td>
                   <td className="px-4 py-3 text-slate-400 text-xs">{l.reason || '-'}</td>
@@ -60,7 +63,7 @@ export default function AdminTransfers() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-semibold text-slate-900 text-sm">{l.nickname}</p>
-                <p className="text-slate-500 text-xs mt-0.5">{l.product_name}</p>
+                <p className="text-slate-500 text-xs mt-0.5">{l.product_name}{l.company_name ? ` · ${l.company_name}` : ''}</p>
               </div>
               <StatusBadge status={l.status} />
             </div>

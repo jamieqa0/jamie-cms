@@ -32,7 +32,7 @@ export default function AuthCallback() {
     const consentToken = sessionStorage.getItem('consentToken');
     if (consentToken) {
       sessionStorage.removeItem('consentToken');
-      navigate(`/consent/${consentToken}`, { replace: true });
+      navigate(`/consent/${consentToken}`, { replace: true, state: { fromAuth: true } });
       return;
     }
 
