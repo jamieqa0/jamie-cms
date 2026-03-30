@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { getProduct } from '../api/products';
 import { getAccounts } from '../api/accounts';
 import { createSubscription } from '../api/subscriptions';
@@ -27,24 +28,28 @@ export default function ProductDetail() {
 
   const handleSubscribe = async () => {
     if (paymentMethod === 'account' && !selectedAccount) {
-      alert('출금 계좌를 선택해주세요');
+      toast.error('출금 계좌를 선택해주세요');
       return;
     }
     setLoading(true);
     try {
       await createSubscription({ productId: id, accountId: selectedAccount, paymentMethod });
-      alert('구독이 완료되었어요!');
+      toast.success('구독이 완료되었어요!');
       navigate('/subscriptions');
     } catch (e) {
-      alert(e.response?.data?.error || '구독 실패');
+      toast.error(e.response?.data?.error || '구독 실패');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (!product) return <div className="p-6">로딩 중...</div>;
 
   return (
     <div className="max-w-lg space-y-6">
+      <button onClick={() => navigate(-1)} className="text-sm text-slate-400 hover:text-slate-700 transition flex items-center gap-1">
+        ← 뒤로
+      </button>
       <div className="space-y-1">
         {product.company?.nickname && (
           <p className="text-sm font-medium text-blue-600">{product.company.nickname}</p>
@@ -72,16 +77,19 @@ export default function ProductDetail() {
             <button
               key={m.value}
               onClick={() => m.available && setPaymentMethod(m.value)}
+              disabled={!m.available}
               className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition ${
                 m.available && paymentMethod === m.value
                   ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                  : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                  : m.available
+                    ? 'border-slate-200 text-slate-500 hover:border-slate-300'
+                    : 'border-slate-100 text-slate-300 cursor-not-allowed opacity-50'
               }`}
             >
               <span>{m.icon}</span>
               <span>{m.label}</span>
               {!m.available && (
-                <span className="ml-auto text-xs text-slate-300">준비중</span>
+                <span className="ml-auto text-xs">준비중</span>
               )}
             </button>
           ))}
@@ -91,10 +99,10 @@ export default function ProductDetail() {
           accounts.length === 0 ? (
             <div className="text-center space-y-3">
               <p className="text-sm text-red-500">등록된 계좌가 없습니다.</p>
-              <a href="/accounts"
+              <Link to="/accounts"
                 className="inline-block w-full bg-slate-800 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-700 transition text-center">
                 계좌 등록하러 가기 →
-              </a>
+              </Link>
             </div>
           ) : (
             <select

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import { getCompanyCustomers, createManualInvoice, getCompanyInvoices } from '../../api/company';
 
@@ -28,17 +29,17 @@ export default function CompanyCustomers() {
   const copyLink = (token) => {
     const url = `${window.location.origin}/consent/${token}`;
     navigator.clipboard.writeText(url);
-    alert('링크가 복사되었습니다.');
+    toast.success('링크가 복사되었습니다.');
   };
 
   const handleIssueInvoice = async (subscriptionId) => {
     setIssuing(subscriptionId);
     try {
       await createManualInvoice(subscriptionId);
-      alert('청구서가 발행되었습니다.');
+      toast.success('청구서가 발행되었습니다.');
       setIssuedSet(prev => new Set(prev).add(subscriptionId));
     } catch (e) {
-      alert(e.message || '청구서 발행 실패');
+      toast.error(e.message || '청구서 발행 실패');
     } finally {
       setIssuing(null);
     }

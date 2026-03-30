@@ -23,7 +23,7 @@ npx vitest run     # 테스트 단회 실행
 npx vitest run src/utils/chartUtils.test.js  # 단일 파일 실행
 ```
 
-테스트 파일: `src/utils/*.test.js` (vitest + jsdom, `@testing-library/react` 사용)
+테스트 파일: `src/utils/*.test.js`, `src/api/*.test.js` (vitest + jsdom, `@testing-library/react` 사용)
 
 Edge Function 배포:
 ```bash
@@ -79,6 +79,10 @@ Zustand store (persist 없음 — `onAuthStateChange`가 새로고침 시 자동
 
 `onAuthStateChange` 내부에서 `setTimeout(0)` 사용 — Supabase 내부 잠금 해제 후 DB 쿼리 실행 필요.
 
+**비활동 자동 로그아웃**: 세션 활성 시 click/keydown/mousemove/scroll/touchstart 이벤트로 타이머 리셋. 10분 비활동 시 `supabase.auth.signOut()` 자동 호출.
+
+**레이스 컨디션 방지**: `onAuthStateChange` 콜백에서 DB 쿼리 완료 전 세션이 다른 유저로 교체됐으면 결과 무시 (`session.user.id` 이중 체크). 업체 등록 시 `signUp` → `setSession` 순서에서 발생하는 문제를 방지.
+
 ### 업체 등록 (`AdminCompanyForm.jsx`)
 
 `supabase.auth.signUp()` 호출 시 세션이 신규 유저로 교체됨. 패턴:
@@ -108,16 +112,22 @@ await supabase.auth.setSession({ access_token: adminSession.access_token, refres
 /                           Landing (로그인/회원가입)
 /auth/callback              OAuth 코드 교환
 /consent/:token             동의 페이지 (비로그인 접근 가능)
+/features                   기능 소개 페이지
+/coming-soon                준비 중 페이지
 (ProtectedRoute)
   (Layout)                  nav: 대시보드/내 구독/내 청구서/상품 + 프로필
-    /dashboard, /products, /accounts, /subscriptions, /invoices, /profile
+    /dashboard, /products, /products/:id, /accounts, /accounts/:id
+    /subscriptions, /invoices, /profile
   (AdminRoute)
     (AdminLayout)
-      /admin, /admin/companies, /admin/transfers, /admin/collection, /admin/users
+      /admin, /admin/companies, /admin/companies/new
+      /admin/products, /admin/products/new, /admin/products/:id
+      /admin/transfers, /admin/collection, /admin/users, /admin/unpaid
   (CompanyRoute)
     (CompanyLayout)
-      /company, /company/products, /company/customers, /company/transfers,
-      /company/unpaid, /company/profile, /company/tax-invoices
+      /company, /company/products, /company/products/new, /company/products/:id
+      /company/customers, /company/customers/new
+      /company/transfers, /company/unpaid, /company/profile, /company/tax-invoices
 ```
 
 `/accounts`는 메뉴에서 제거됐지만 라우트는 유지 — Profile 페이지에서 링크로 접근.
@@ -126,27 +136,51 @@ await supabase.auth.setSession({ access_token: adminSession.access_token, refres
 
 | 파일 | 용도 |
 |------|------|
-| `auth.js` | 프로필 조회/수정 |
-| `accounts.js` | 계좌 CRUD |
+| `auth.js` | 프로필 조회/수정, `ensureUserExists()` (Self-Healing) |
+| `accounts.js` | 계좌 CRUD, 계좌 생성 전 `ensureUserExists()` 호출 |
 | `subscriptions.js` | 구독 CRUD (products join 포함) |
-| `products.js` | 상품 목록/상세 |
+| `products.js` | 상품 목록/상세 (users 조인으로 업체명 포함) |
 | `invoices.js` | `get_user_invoices` RPC 호출, `getInvoiceById` |
 | `admin.js` | 어드민 전용 (RPC 호출, Edge Function 호출, `retryBillingBulk`) |
 | `company.js` | 업체 전용 (상품/고객/통계/정산계좌/청구서/`getMyCompany`) |
 
 모든 Supabase 호출은 `client/src/lib/supabase.js`의 단일 인스턴스 사용. 컴포넌트에서 직접 supabase 호출 금지 (api/ 함수 경유). 단, `CompanyTaxInvoices.jsx`는 집계 쿼리 특성상 예외적으로 직접 호출.
 
+### 주요 컴포넌트
+
+| 파일 | 용도 |
+|------|------|
+| `InvoiceModal.jsx` | 청구서 상세 모달 |
+| `ReceiptModal.jsx` | 현금영수증 모달 (국세청 스타일, 인쇄/PDF 지원) — `invoice.status === 'paid'`일 때만 렌더 |
+| `ProtectedRoute.jsx` | 로그인 여부 체크 |
+| `AdminRoute.jsx` | admin role 체크 |
+| `CompanyRoute.jsx` | company role 체크 |
+| `AppNav.jsx` | 유저용 상단 네비게이션 |
+| `Footer.jsx` | 공통 푸터 (모든 레이아웃에 적용) |
+
+### 유틸리티 (`client/src/utils/`)
+
+| 파일 | 용도 |
+|------|------|
+| `chartUtils.js` | recharts용 데이터 변환 |
+| `transactionUtils.js` | `groupByDate()` — 거래내역 날짜별 그룹핑 (`created_at` 또는 `executed_at` 기준) |
+| `commissionUtils.js` | 수수료 계산 |
+
 ## DB Schema
 
-9개 테이블: `users`, `accounts`, `transactions`, `subscriptions`, `billing_logs`, `products`, `companies`, `consent_requests`, `refresh_tokens`
+10개 테이블: `users`, `accounts`, `transactions`, `subscriptions`, `billing_logs`, `products`, `companies`, `consent_requests`, `refresh_tokens`, `invoices`
 
 **accounts.type**: `personal` (유저) | `collection` (시스템 집금) | `company` (업체 정산)
 
 **companies 테이블**: `user_id(PK) → users`, `industry`, `commission_rate`
 
-**consent_requests**: 업체가 고객에게 보내는 동의 요청. `invite_token`으로 공유, `status`: pending → accepted/rejected
+**consent_requests**: 업체가 고객에게 보내는 동의 요청. `invite_token`으로 공유, `expires_at` 만료 시각 (migration 024), `status`: pending → accepted/rejected
 
 **billing_logs.status**: `success` | `failed` | `retried` — 재청구 성공 시 원래 `failed` 로그를 `retried`로 UPDATE. `get_company_unpaid`는 `status = 'failed'`만 조회하므로 retried 로우는 자동 제외.
+
+**invoices**: `subscription_id`, `billing_log_id` (nullable), `amount`, `supply_amount`, `vat`, `status` (issued/paid/failed), `issued_at`, `paid_at`. `transactions.invoice_id` FK로 연결 (migration 019).
+
+**users.withdrawn_at**: 탈퇴 시각. 탈퇴 시 `kakao_id`를 NULL로 초기화 (재가입 충돌 방지, migration 032).
 
 ## Supabase SQL 주의사항
 
@@ -183,22 +217,3 @@ WHERE u.role = 'company'
 - 전역 상태는 Zustand(`authStore`)만 사용
 - `@` import alias → `src/` (예: `import { supabase } from '@/lib/supabase'`)
 - 아이콘: `lucide-react`, 차트: `recharts`
-
-## Recent Major Updates (2026-03-30)
-
-### 1. 상품/업체 데이터 시각화 개선
-- `products.js` API 수정: `products` 조회 시 `users` 테이블과 조인하여 업체명(`company.nickname`)을 함께 가져오도록 변경.
-- 일반 유저용 상품 목록(`Products.jsx`) 및 상세(`ProductDetail.jsx`), 어드민 상품 관리 테이블(`AdminProducts.jsx`)에 업체명 표시 추가.
-
-### 2. 푸터 및 서비스 소개 보강
-- **공통 푸터 (`Footer.jsx`)**: 서비스 정보, 네비게이션, 사업자 정보를 포함한 전문적인 푸터 구현 및 모든 레이아웃 적용.
-- **기능 소개 페이지 (`Features.jsx`)**: 주요 기능(정기결제, 구독관리, 인보이스, 어드민)을 설명하는 랜딩 페이지 신설 및 푸터 연동.
-- **준비 중 페이지 (`ComingSoon.jsx`)**: 미구현 링크를 위한 공통 안내 페이지 제작.
-
-### 3. 유저 동기화 및 계좌 생성 버그 수정
-- **증상**: 계좌 개설 시 `accounts_user_id_fkey` 위반 또는 재가입 시 `users_kakao_id_key` 중복 오류 발생.
-- **원인**: `auth.users`와 `public.users` 간의 트리거 동기화 누락 및 탈퇴 후 재가입 시 기존 유령 레코드와의 충돌.
-- **해결**:
-    - `036_sync_users_backfill.sql`: 누락된 유저 강제 백필 및 중복 `kakao_id` 정리 로직 추가.
-    - `032_user_withdrawal.sql`: 탈퇴 시 `kakao_id`를 NULL로 비워 재가입 시 충돌 방지.
-    - `auth.js` & `accounts.js`: 계좌 생성 전 `ensureUserExists()`를 호출하는 'Self-Healing' 로직 도입.

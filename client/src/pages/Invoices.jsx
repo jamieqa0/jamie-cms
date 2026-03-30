@@ -14,12 +14,13 @@ const INV_STATUS_COLOR = {
 export default function Invoices() {
   const { user } = useAuthStore();
   const [invoices, setInvoices] = useState([]);
+  const [loadError, setLoadError] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
 
   useEffect(() => {
     if (!user?.id) return;
-    getUserInvoices(user.id).then(setInvoices).catch(() => {});
+    getUserInvoices(user.id).then(setInvoices).catch(() => setLoadError('청구서를 불러오지 못했습니다.'));
   }, [user?.id]);
 
   const unpaid = invoices.filter(i => i.status === 'issued');
@@ -64,7 +65,9 @@ export default function Invoices() {
         <div className="px-5 py-4 border-b border-slate-50">
           <h2 className="font-bold text-slate-900">전체 내역</h2>
         </div>
-        {invoices.length === 0 ? (
+        {loadError ? (
+          <p className="text-red-400 text-sm px-5 py-8 text-center">{loadError}</p>
+        ) : invoices.length === 0 ? (
           <p className="text-slate-400 text-sm px-5 py-8 text-center">청구서가 없습니다.</p>
         ) : (
           <ul>

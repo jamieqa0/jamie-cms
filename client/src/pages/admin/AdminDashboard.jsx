@@ -19,8 +19,8 @@ export default function AdminDashboard() {
     ]).then(([companyRes, t]) => {
       setCounts({ companies: companyRes.count ?? 0, transfers: t.data?.length ?? 0 });
       setTransfers(t.data || []);
-    }).catch(() => {});
-    getAdminStats().then(r => setStats(r.data)).catch(() => {});
+    }).catch(console.error);
+    getAdminStats().then(r => setStats(r.data)).catch(console.error);
   }, []);
 
   const handleRunScheduler = async () => {
@@ -29,7 +29,7 @@ export default function AdminDashboard() {
     try {
       await runAdminScheduler(targetDay);
       alert('자동이체 실행 완료!');
-      getAdminStats().then(r => setStats(r.data)).catch(() => {});
+      getAdminStats().then(r => setStats(r.data)).catch(console.error);
     } catch (e) {
       alert(e.response?.data?.error || '실행 실패');
     } finally {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { getMe, updateMe, withdrawUser } from '../api/auth';
 import { getAccounts } from '../api/accounts';
@@ -21,21 +22,26 @@ export default function Profile() {
     } else {
       getMe().then(res => {
         if (res.data) { setUser(res.data); setNickname(res.data.nickname || ''); }
-      }).catch(() => {});
+      }).catch(console.error);
     }
   }, [user, setUser]);
 
   useEffect(() => {
-    getAccounts().then(r => setAccounts(r.data ?? [])).catch(() => {});
+    getAccounts().then(r => setAccounts(r.data ?? [])).catch(console.error);
   }, []);
 
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
-    const res = await updateMe({ nickname });
-    setUser({ ...user, nickname: res.data.nickname });
-    setSaving(false);
-    alert('저장되었어요!');
+    try {
+      const res = await updateMe({ nickname });
+      setUser({ ...user, nickname: res.data.nickname });
+      toast.success('저장되었습니다.');
+    } catch {
+      toast.error('저장에 실패했습니다.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleWithdraw = async () => {

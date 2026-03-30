@@ -223,7 +223,7 @@ export default function Landing() {
                   <p className="text-gray-500 text-[14px] mt-1">업체 및 관리자 전용 채널입니다.</p>
                 </div>
                 <form onSubmit={handleEmailLogin} className="space-y-3">
-                  <input type="email" placeholder="이메일 (admin@jamie.com 등)" required value={email}
+                  <input type="email" placeholder="이메일 주소" required value={email}
                     onChange={e => setEmail(e.target.value)}
                     className="w-full bg-[#f2f4f6] text-gray-900 placeholder:text-gray-400 rounded-xl px-4 py-3.5 text-[15px] focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all border border-transparent focus:border-blue-500" />
                   <input type="password" placeholder="비밀번호" required value={password}

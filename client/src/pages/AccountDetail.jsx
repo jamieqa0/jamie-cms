@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { getAccount, deposit, withdraw, deleteAccount } from '../api/accounts';
 import { getUserInvoices } from '../api/invoices';
 import { useAuthStore } from '../store/authStore';
@@ -18,7 +19,9 @@ export default function AccountDetail() {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
 
-  const load = () => getAccount(id).then(r => setAccount(r.data));
+  const [loadError, setLoadError] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const load = () => getAccount(id).then(r => setAccount(r.data)).catch(() => setLoadError('계좌 정보를 불러오지 못했습니다.'));
   useEffect(() => { load(); }, [id]);
 
   useEffect(() => {
@@ -27,16 +30,22 @@ export default function AccountDetail() {
       const map = {};
       list.forEach(inv => { map[inv.id] = inv; });
       setInvoiceMap(map);
-    }).catch(() => {});
+    }).catch(console.error);
   }, [user?.id]);
 
   const handleDeposit = async () => {
     if (!amount) return;
     setLoading(true);
-    await deposit(id, Number(amount));
-    setAmount('');
-    await load();
-    setLoading(false);
+    try {
+      await deposit(id, Number(amount));
+      setAmount('');
+      await load();
+      toast.success('입금되었습니다.');
+    } catch (e) {
+      toast.error(e.response?.data?.error || '입금 실패');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleWithdraw = async () => {
@@ -53,15 +62,18 @@ export default function AccountDetail() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('계좌를 삭제할까요?')) return;
     try {
       await deleteAccount(id);
       navigate('/accounts');
     } catch (e) {
-      alert(e.response?.data?.error || '삭제 실패');
+      toast.error(e.response?.data?.error || '삭제 실패');
+      setDeleteConfirm(false);
     }
   };
 
+  if (loadError) return (
+    <div className="flex items-center justify-center py-20 text-red-400 text-sm">{loadError}</div>
+  );
   if (!account) return (
     <div className="flex items-center justify-center py-20 text-slate-400 text-sm">로딩 중...</div>
   );
@@ -70,10 +82,31 @@ export default function AccountDetail() {
 
   return (
     <div className="space-y-5">
+      <button onClick={() => navigate(-1)} className="text-sm text-slate-400 hover:text-slate-700 transition flex items-center gap-1">
+        ← 뒤로
+      </button>
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">{account.name}</h1>
-        <button onClick={handleDelete} className="text-xs text-slate-400 hover:text-red-500 transition">계좌 삭제</button>
+        {!deleteConfirm && (
+          <button onClick={() => setDeleteConfirm(true)} className="text-xs text-slate-400 hover:text-red-500 transition">계좌 삭제</button>
+        )}
       </div>
+      {deleteConfirm && (
+        <div className="rounded-xl border border-red-100 bg-red-50 p-4 space-y-3">
+          <p className="text-sm font-semibold text-red-700">정말 이 계좌를 삭제할까요?</p>
+          <p className="text-xs text-red-500">삭제된 계좌는 복구할 수 없습니다.</p>
+          <div className="flex gap-2">
+            <button onClick={handleDelete}
+              className="flex-1 bg-red-600 text-white text-sm font-semibold py-2 rounded-lg hover:bg-red-700 transition">
+              삭제 확인
+            </button>
+            <button onClick={() => setDeleteConfirm(false)}
+              className="flex-1 border border-slate-200 text-slate-600 text-sm font-medium py-2 rounded-lg hover:bg-slate-50 transition">
+              취소
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 잔액 카드 */}
       <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg">

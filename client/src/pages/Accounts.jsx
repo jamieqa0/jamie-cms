@@ -8,7 +8,7 @@ export default function Accounts() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
 
-  const load = () => getAccounts().then(r => setAccounts(r.data)).catch(() => {});
+  const load = () => getAccounts().then(r => setAccounts(r.data)).catch(() => setError('계좌 목록을 불러오지 못했습니다.'));
   useEffect(() => { load(); }, []);
 
   const handleCreate = async (e) => {

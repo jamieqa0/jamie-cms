@@ -15,12 +15,12 @@ export default function Dashboard() {
   const [invoices, setInvoices] = useState([]);
 
   useEffect(() => {
-    getSubscriptions().then(r => setSubscriptions(r.data));
+    getSubscriptions().then(r => setSubscriptions(r.data)).catch(console.error);
   }, []);
 
   useEffect(() => {
     if (!user?.id) return;
-    getUserInvoices(user.id).then(setInvoices).catch(() => {});
+    getUserInvoices(user.id).then(setInvoices).catch(console.error);
   }, [user?.id]);
 
   const activeCount = subscriptions.filter(s => s.status === 'active').length;

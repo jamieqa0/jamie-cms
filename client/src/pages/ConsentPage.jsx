@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { getConsentRequest, acceptConsent } from '../api/company';
 import { supabase } from '../lib/supabase';
@@ -229,24 +229,27 @@ export default function ConsentPage() {
             {/* 결제수단 타입 탭 */}
             <div className="grid grid-cols-2 gap-2">
               {[
-                { key: 'account', label: '계좌이체', icon: '🏦' },
-                { key: 'card',    label: '카드',     icon: '💳' },
-                { key: 'phone',   label: '휴대폰결제', icon: '📱' },
-                { key: 'pay',     label: '간편페이',  icon: '⚡' },
+                { key: 'account', label: '계좌이체', icon: '🏦', available: true },
+                { key: 'card',    label: '카드',     icon: '💳', available: false },
+                { key: 'phone',   label: '휴대폰결제', icon: '📱', available: false },
+                { key: 'pay',     label: '간편페이',  icon: '⚡', available: false },
               ].map(m => (
                 <button
                   key={m.key}
-                  onClick={() => setPaymentMethod(m.key)}
+                  onClick={() => m.available && setPaymentMethod(m.key)}
+                  disabled={!m.available}
                   className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition ${
-                    paymentMethod === m.key
+                    m.available && paymentMethod === m.key
                       ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                      : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                      : m.available
+                        ? 'border-slate-200 text-slate-500 hover:border-slate-300'
+                        : 'border-slate-100 text-slate-300 cursor-not-allowed opacity-50'
                   }`}
                 >
                   <span>{m.icon}</span>
                   <span>{m.label}</span>
-                  {m.key !== 'account' && (
-                    <span className="ml-auto text-xs text-slate-300">준비중</span>
+                  {!m.available && (
+                    <span className="ml-auto text-xs">준비중</span>
                   )}
                 </button>
               ))}
@@ -257,10 +260,10 @@ export default function ConsentPage() {
               accounts.length === 0 ? (
                 <div className="text-center space-y-3">
                   <p className="text-sm text-red-500">등록된 계좌가 없습니다.</p>
-                  <a href="/accounts"
+                  <Link to="/accounts"
                     className="inline-block w-full bg-slate-800 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-700 transition text-center">
                     계좌 등록하러 가기 →
-                  </a>
+                  </Link>
                 </div>
               ) : (
                 <select
