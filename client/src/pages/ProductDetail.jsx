@@ -20,10 +20,15 @@ export default function ProductDetail() {
   const [selectedAccount, setSelectedAccount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('account');
   const [loading, setLoading] = useState(false);
+  const [alreadySubscribed, setAlreadySubscribed] = useState(false);
 
   useEffect(() => {
     getProduct(id).then(r => setProduct(r.data));
     getAccounts().then(r => setAccounts(r.data));
+    getSubscriptions().then(r => {
+      const active = r.data.filter(s => s.status === 'active' || s.status === 'paused');
+      setAlreadySubscribed(active.some(s => s.product_id === id));
+    }).catch(console.error);
   }, [id]);
 
   const handleSubscribe = async () => {
@@ -126,23 +131,34 @@ export default function ProductDetail() {
           </div>
         )}
 
-        <p className="text-xs text-slate-400 text-center leading-relaxed">
-          구독 신청 시{' '}
-          <button onClick={() => alert('서비스 이용약관 준비 중입니다.')} className="underline underline-offset-2 hover:text-slate-600 transition">이용약관</button>
-          {' '}및{' '}
-          <button onClick={() => alert('개인정보 처리방침 준비 중입니다.')} className="underline underline-offset-2 hover:text-slate-600 transition">개인정보 처리방침</button>
-          {' '}및{' '}
-          <button onClick={() => alert('자동이체 출금 동의서 준비 중입니다.')} className="underline underline-offset-2 hover:text-slate-600 transition">자동이체 출금 동의서</button>
-          에 동의한 것으로 간주합니다.{' '}
-          <span className="text-slate-300">(준비중)</span>
-        </p>
-        <button
-          onClick={handleSubscribe}
-          disabled={loading || paymentMethod !== 'account' || accounts.length === 0}
-          className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition disabled:opacity-50"
-        >
-          {loading ? '처리 중...' : '구독 신청'}
-        </button>
+        {alreadySubscribed ? (
+          <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-center space-y-1">
+            <p className="text-sm font-semibold text-slate-600">이미 구독 중인 상품입니다</p>
+            <button onClick={() => navigate('/subscriptions')} className="text-xs text-blue-500 hover:underline">
+              구독 내역 보기 →
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="text-xs text-slate-400 text-center leading-relaxed">
+              구독 신청 시{' '}
+              <button onClick={() => alert('서비스 이용약관 준비 중입니다.')} className="underline underline-offset-2 hover:text-slate-600 transition">이용약관</button>
+              {' '}및{' '}
+              <button onClick={() => alert('개인정보 처리방침 준비 중입니다.')} className="underline underline-offset-2 hover:text-slate-600 transition">개인정보 처리방침</button>
+              {' '}및{' '}
+              <button onClick={() => alert('자동이체 출금 동의서 준비 중입니다.')} className="underline underline-offset-2 hover:text-slate-600 transition">자동이체 출금 동의서</button>
+              에 동의한 것으로 간주합니다.{' '}
+              <span className="text-slate-300">(준비중)</span>
+            </p>
+            <button
+              onClick={handleSubscribe}
+              disabled={loading || paymentMethod !== 'account' || accounts.length === 0}
+              className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition disabled:opacity-50"
+            >
+              {loading ? '처리 중...' : '구독 신청'}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
