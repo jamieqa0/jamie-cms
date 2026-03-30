@@ -183,3 +183,22 @@ WHERE u.role = 'company'
 - 전역 상태는 Zustand(`authStore`)만 사용
 - `@` import alias → `src/` (예: `import { supabase } from '@/lib/supabase'`)
 - 아이콘: `lucide-react`, 차트: `recharts`
+
+## Recent Major Updates (2026-03-30)
+
+### 1. 상품/업체 데이터 시각화 개선
+- `products.js` API 수정: `products` 조회 시 `users` 테이블과 조인하여 업체명(`company.nickname`)을 함께 가져오도록 변경.
+- 일반 유저용 상품 목록(`Products.jsx`) 및 상세(`ProductDetail.jsx`), 어드민 상품 관리 테이블(`AdminProducts.jsx`)에 업체명 표시 추가.
+
+### 2. 푸터 및 서비스 소개 보강
+- **공통 푸터 (`Footer.jsx`)**: 서비스 정보, 네비게이션, 사업자 정보를 포함한 전문적인 푸터 구현 및 모든 레이아웃 적용.
+- **기능 소개 페이지 (`Features.jsx`)**: 주요 기능(정기결제, 구독관리, 인보이스, 어드민)을 설명하는 랜딩 페이지 신설 및 푸터 연동.
+- **준비 중 페이지 (`ComingSoon.jsx`)**: 미구현 링크를 위한 공통 안내 페이지 제작.
+
+### 3. 유저 동기화 및 계좌 생성 버그 수정
+- **증상**: 계좌 개설 시 `accounts_user_id_fkey` 위반 또는 재가입 시 `users_kakao_id_key` 중복 오류 발생.
+- **원인**: `auth.users`와 `public.users` 간의 트리거 동기화 누락 및 탈퇴 후 재가입 시 기존 유령 레코드와의 충돌.
+- **해결**:
+    - `036_sync_users_backfill.sql`: 누락된 유저 강제 백필 및 중복 `kakao_id` 정리 로직 추가.
+    - `032_user_withdrawal.sql`: 탈퇴 시 `kakao_id`를 NULL로 비워 재가입 시 충돌 방지.
+    - `auth.js` & `accounts.js`: 계좌 생성 전 `ensureUserExists()`를 호출하는 'Self-Healing' 로직 도입.

@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { getMe, updateMe } from '../api/auth';
+import { getMe, updateMe, withdrawUser } from '../api/auth';
 import { getAccounts } from '../api/accounts';
+import { supabase } from '../lib/supabase';
 
 export default function Profile() {
   const { user, session, setUser } = useAuthStore();
+  const navigate = useNavigate();
   const isKakao = session?.user?.app_metadata?.provider === 'kakao';
   const [nickname, setNickname] = useState('');
   const [saving, setSaving] = useState(false);
   const [accounts, setAccounts] = useState([]);
+  const [withdrawStep, setWithdrawStep] = useState(0); // 0: 숨김 1: 경고 2: 처리중
+  const [withdrawError, setWithdrawError] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -32,6 +36,21 @@ export default function Profile() {
     setUser({ ...user, nickname: res.data.nickname });
     setSaving(false);
     alert('저장되었어요!');
+  };
+
+  const handleWithdraw = async () => {
+    setWithdrawStep(2);
+    setWithdrawError('');
+    try {
+      await withdrawUser();
+      // RPC가 auth.users를 삭제하므로 세션이 무효화됨
+      // 클라이언트 로컬 상태도 정리
+      await supabase.auth.signOut();
+      navigate('/');
+    } catch (err) {
+      setWithdrawError(err.message || '탈퇴 처리 중 오류가 발생했습니다.');
+      setWithdrawStep(1);
+    }
   };
 
   const personalAccounts = accounts.filter(a => a.type === 'personal');
@@ -97,6 +116,50 @@ export default function Profile() {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+      </div>
+      {/* 회원 탈퇴 */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+        <h2 className="font-bold text-slate-900 mb-1">회원 탈퇴</h2>
+        <p className="text-slate-400 text-xs mb-4">탈퇴 후에도 결제 내역은 보관되며, 동일한 이메일로 재가입할 수 있습니다.</p>
+
+        {withdrawStep === 0 && (
+          <button
+            onClick={() => setWithdrawStep(1)}
+            className="text-sm text-red-500 hover:text-red-700 font-medium underline underline-offset-2 transition"
+          >
+            탈퇴하기
+          </button>
+        )}
+
+        {withdrawStep >= 1 && (
+          <div className="rounded-xl border border-red-100 bg-red-50 p-4 space-y-3">
+            <p className="text-sm font-semibold text-red-700">정말 탈퇴하시겠습니까?</p>
+            <ul className="text-xs text-red-600 space-y-1 list-disc list-inside">
+              <li>활성 구독은 더 이상 자동 결제되지 않습니다.</li>
+              <li>기존 결제 내역과 데이터는 삭제되지 않고 보관됩니다.</li>
+              <li>탈퇴 후 동일한 이메일로 재가입할 수 있습니다.</li>
+            </ul>
+            {withdrawError && (
+              <p className="text-xs text-red-700 font-medium">{withdrawError}</p>
+            )}
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={handleWithdraw}
+                disabled={withdrawStep === 2}
+                className="flex-1 bg-red-600 text-white text-sm font-semibold py-2 rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {withdrawStep === 2 ? '처리 중...' : '탈퇴 확인'}
+              </button>
+              <button
+                onClick={() => { setWithdrawStep(0); setWithdrawError(''); }}
+                disabled={withdrawStep === 2}
+                className="flex-1 border border-slate-200 text-slate-600 text-sm font-medium py-2 rounded-lg hover:bg-slate-50 transition disabled:opacity-50"
+              >
+                취소
+              </button>
+            </div>
           </div>
         )}
       </div>

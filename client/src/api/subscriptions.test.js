@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getSubscriptions, updateSubscription, cancelSubscription } from './subscriptions';
+import { getSubscriptions, createSubscription, updateSubscription, cancelSubscription } from './subscriptions';
 
 vi.mock('../lib/supabase', () => {
   const builder = {
@@ -9,6 +9,7 @@ vi.mock('../lib/supabase', () => {
     update: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
     single: vi.fn(),
+    delete: vi.fn().mockReturnThis(),
   };
   return {
     supabase: {
@@ -60,6 +61,42 @@ describe('getSubscriptions', () => {
 
     const { data } = await getSubscriptions();
     expect(data).toEqual([]);
+  });
+});
+
+describe('createSubscription', () => {
+  it('구독을 생성하고 data를 반환한다', async () => {
+    const newSub = { id: 'sub-3', product_id: 'prod-1', account_id: 'acc-1', status: 'active' };
+    b.single.mockResolvedValue({ data: newSub, error: null });
+
+    const { data } = await createSubscription({ productId: 'prod-1', accountId: 'acc-1' });
+    expect(data.id).toBe('sub-3');
+  });
+
+  it('user_id, product_id, account_id를 포함해 insert를 호출한다', async () => {
+    b.single.mockResolvedValue({ data: { id: 'sub-3' }, error: null });
+
+    await createSubscription({ productId: 'prod-1', accountId: 'acc-1' });
+    expect(b.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ product_id: 'prod-1', account_id: 'acc-1', user_id: USER_ID })
+    );
+  });
+
+  it('payment_method 기본값은 account이다', async () => {
+    b.single.mockResolvedValue({ data: { id: 'sub-3' }, error: null });
+
+    await createSubscription({ productId: 'prod-1', accountId: 'acc-1' });
+    expect(b.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ payment_method: 'account' })
+    );
+  });
+
+  it('DB 오류 시 response.data.error 형식으로 throw한다', async () => {
+    b.single.mockResolvedValue({ data: null, error: { message: '구독 생성 실패' } });
+
+    await expect(createSubscription({ productId: 'prod-1', accountId: 'acc-1' })).rejects.toMatchObject({
+      response: { data: { error: '구독 생성 실패' } },
+    });
   });
 });
 

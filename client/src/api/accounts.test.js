@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getAccounts, deposit, withdraw } from './accounts';
+import { getAccounts, createAccount, getAccount, deposit, withdraw, deleteAccount } from './accounts';
 
 vi.mock('../lib/supabase', () => {
   const builder = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
-    order: vi.fn(),
+    order: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
     single: vi.fn(),
     delete: vi.fn().mockReturnThis(),
@@ -32,7 +32,7 @@ beforeEach(() => {
 describe('getAccounts', () => {
   it('personal 타입 계좌 목록을 반환한다', async () => {
     const accounts = [{ id: 'acc-1', name: '주계좌', type: 'personal', balance: 100000 }];
-    b.order.mockResolvedValue({ data: accounts, error: null });
+    b.order.mockResolvedValueOnce({ data: accounts, error: null });
 
     const { data } = await getAccounts();
     expect(data).toHaveLength(1);
@@ -40,23 +40,86 @@ describe('getAccounts', () => {
   });
 
   it('type=personal 필터를 적용한다', async () => {
-    b.order.mockResolvedValue({ data: [], error: null });
+    b.order.mockResolvedValueOnce({ data: [], error: null });
 
     await getAccounts();
     expect(b.eq).toHaveBeenCalledWith('type', 'personal');
   });
 
   it('user_id 필터를 적용한다', async () => {
-    b.order.mockResolvedValue({ data: [], error: null });
+    b.order.mockResolvedValueOnce({ data: [], error: null });
 
     await getAccounts();
     expect(b.eq).toHaveBeenCalledWith('user_id', USER_ID);
   });
 
   it('DB 오류 시 throw한다', async () => {
-    b.order.mockResolvedValue({ data: null, error: new Error('DB 오류') });
+    b.order.mockResolvedValueOnce({ data: null, error: new Error('DB 오류') });
 
     await expect(getAccounts()).rejects.toThrow();
+  });
+});
+
+describe('createAccount', () => {
+  it('계좌명과 user_id로 insert를 호출한다', async () => {
+    b.single.mockResolvedValue({ data: { id: 'acc-2', name: '저축계좌' }, error: null });
+
+    await createAccount('저축계좌');
+    expect(b.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ name: '저축계좌', user_id: USER_ID, type: 'personal' })
+    );
+  });
+
+  it('생성된 계좌 data를 반환한다', async () => {
+    b.single.mockResolvedValue({ data: { id: 'acc-2', name: '저축계좌' }, error: null });
+
+    const { data } = await createAccount('저축계좌');
+    expect(data.id).toBe('acc-2');
+  });
+
+  it('DB 오류 시 throw한다', async () => {
+    b.single.mockResolvedValue({ data: null, error: new Error('중복 계좌') });
+
+    await expect(createAccount('저축계좌')).rejects.toThrow('중복 계좌');
+  });
+});
+
+describe('getAccount', () => {
+  it('id에 해당하는 계좌를 반환한다', async () => {
+    const account = { id: 'acc-1', name: '주계좌', transactions: [] };
+    b.single.mockResolvedValue({ data: account, error: null });
+
+    const { data } = await getAccount('acc-1');
+    expect(data.id).toBe('acc-1');
+  });
+
+  it('eq를 id로 필터링한다', async () => {
+    b.single.mockResolvedValue({ data: { id: 'acc-1' }, error: null });
+
+    await getAccount('acc-1');
+    expect(b.eq).toHaveBeenCalledWith('id', 'acc-1');
+  });
+
+  it('DB 오류 시 throw한다', async () => {
+    b.single.mockResolvedValue({ data: null, error: new Error('계좌 없음') });
+
+    await expect(getAccount('acc-999')).rejects.toThrow('계좌 없음');
+  });
+});
+
+describe('deleteAccount', () => {
+  it('id에 해당하는 계좌를 삭제한다', async () => {
+    b.eq.mockResolvedValueOnce({ data: null, error: null });
+
+    await deleteAccount('acc-1');
+    expect(b.delete).toHaveBeenCalled();
+    expect(b.eq).toHaveBeenCalledWith('id', 'acc-1');
+  });
+
+  it('DB 오류 시 throw한다', async () => {
+    b.eq.mockResolvedValueOnce({ data: null, error: new Error('삭제 실패') });
+
+    await expect(deleteAccount('acc-1')).rejects.toThrow('삭제 실패');
   });
 });
 

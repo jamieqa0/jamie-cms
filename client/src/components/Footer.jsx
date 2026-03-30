@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <span className="font-extrabold text-slate-900 text-base tracking-tight">Jamie</span>
           <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-slate-500">
-            <Link to="/coming-soon" className="hover:text-blue-600 transition">주요기능</Link>
+            <Link to="/features" className="hover:text-blue-600 transition">주요기능</Link>
             <Link to="/coming-soon" className="hover:text-blue-600 transition">구독관리</Link>
             <Link to="/coming-soon" className="hover:text-blue-600 transition">공지사항</Link>
             <Link to="/coming-soon" className="hover:text-blue-600 transition">1:1 문의</Link>
@@ -17,7 +17,7 @@ export default function Footer() {
         </div>
         <div className="border-t border-slate-50 pt-4 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
           <span>(주)제이미씨엠에스</span>
-          <span>대표이사: 이제이미</span>
+          <span>대표이사: 제이미</span>
           <span>사업자등록번호: 123-45-67890</span>
           <span>서울특별시 강남구 테헤란로 123, 제이미타워 15층</span>
           <span>© 2026 Jamie CMS. All rights reserved.</span>

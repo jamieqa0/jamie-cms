@@ -72,9 +72,13 @@ export default function CompanyCustomers() {
             )}
             {customers.map(c => {
               const subscriptionId = c.subscriptions?.id;
+              const isWithdrawn = !!c.subscriptions?.users?.withdrawn_at;
               return (
-                <tr key={c.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50">
-                  <td className="px-5 py-3 font-medium text-slate-900">{c.customer_name}</td>
+                <tr key={c.id} className={`border-b border-slate-50 last:border-0 hover:bg-slate-50 ${isWithdrawn ? 'opacity-50' : ''}`}>
+                  <td className="px-5 py-3 font-medium text-slate-900">
+                    <span>{c.customer_name}</span>
+                    {isWithdrawn && <span className="ml-2 text-xs bg-red-50 text-red-500 font-medium px-1.5 py-0.5 rounded-full">탈퇴</span>}
+                  </td>
                   <td className="px-5 py-3 text-slate-500">{c.customer_contact}</td>
                   <td className="px-5 py-3 text-slate-700">{c.products?.name}</td>
                   <td className="px-5 py-3">
@@ -89,7 +93,7 @@ export default function CompanyCustomers() {
                     )}
                   </td>
                   <td className="px-5 py-3 text-right">
-                    {c.status === 'accepted' && subscriptionId && (
+                    {c.status === 'accepted' && subscriptionId && !isWithdrawn && (
                       <button
                         onClick={() => !issuedSet.has(subscriptionId) && handleIssueInvoice(subscriptionId)}
                         disabled={issuing === subscriptionId || issuedSet.has(subscriptionId)}

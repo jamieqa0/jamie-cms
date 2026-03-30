@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { ensureUserExists } from './auth';
 
 export const getAccounts = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -13,10 +14,11 @@ export const getAccounts = async () => {
 };
 
 export const createAccount = async (name) => {
+  await ensureUserExists();
   const { data: { user } } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from('accounts')
-    .insert({ user_id: user.id, name, type: 'personal' })
+    .insert({ user_id: user.id, name, type: 'personal', balance: 0 })
     .select()
     .single();
   if (error) throw error;

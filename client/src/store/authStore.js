@@ -40,12 +40,15 @@ supabase.auth.onAuthStateChange((event, session) => {
 
     // setTimeout(0): Supabase 내부 잠금 해제 후 DB 쿼리 실행 (데드락 방지)
     setTimeout(async () => {
+      // 쿼리 실행 중 세션이 다른 유저로 교체됐으면 결과를 무시 (signUp → setSession 레이스 컨디션 방지)
+      if (useAuthStore.getState().session?.user?.id !== session.user.id) return;
       try {
         const { data: userData } = await supabase
           .from('users')
           .select('id, nickname, email, role')
           .eq('id', session.user.id)
           .single();
+        if (useAuthStore.getState().session?.user?.id !== session.user.id) return;
         useAuthStore.setState({
           user: userData ?? {
             id: session.user.id,
@@ -56,6 +59,7 @@ supabase.auth.onAuthStateChange((event, session) => {
           initializing: false,
         });
       } catch {
+        if (useAuthStore.getState().session?.user?.id !== session.user.id) return;
         useAuthStore.setState({
           user: {
             id: session.user.id,

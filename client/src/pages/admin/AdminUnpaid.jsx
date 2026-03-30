@@ -58,28 +58,38 @@ export default function AdminUnpaid() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-50 transition">
+              {logs.map((log) => {
+                const isWithdrawn = !!log.withdrawn_at;
+                return (
+                <tr key={log.id} className={`hover:bg-slate-50 transition ${isWithdrawn ? 'opacity-50' : ''}`}>
                   <td className="px-4 py-3 text-slate-500">
                     {new Date(log.executed_at).toLocaleDateString('ko-KR')}
                   </td>
-                  <td className="px-4 py-3 font-medium text-slate-900">{log.nickname}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900">
+                    <span>{log.nickname}</span>
+                    {isWithdrawn && <span className="ml-2 text-xs bg-red-50 text-red-500 font-medium px-1.5 py-0.5 rounded-full">탈퇴</span>}
+                  </td>
                   <td className="px-4 py-3 text-slate-700">{log.product_name}</td>
                   <td className="px-4 py-3 text-right font-medium text-slate-900">
                     {Number(log.amount).toLocaleString()}원
                   </td>
                   <td className="px-4 py-3 text-red-600 text-xs">{log.reason || '-'}</td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleRetry(log.id)}
-                      disabled={retrying === log.id}
-                      className="px-3 py-1.5 bg-violet-600 text-white text-xs rounded-lg hover:bg-violet-700 transition disabled:opacity-50"
-                    >
-                      {retrying === log.id ? '처리 중...' : '재청구'}
-                    </button>
+                    {isWithdrawn ? (
+                      <span className="text-xs text-slate-400">재청구 불가</span>
+                    ) : (
+                      <button
+                        onClick={() => handleRetry(log.id)}
+                        disabled={retrying === log.id}
+                        className="px-3 py-1.5 bg-violet-600 text-white text-xs rounded-lg hover:bg-violet-700 transition disabled:opacity-50"
+                      >
+                        {retrying === log.id ? '처리 중...' : '재청구'}
+                      </button>
+                    )}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
           </div>

@@ -53,7 +53,7 @@ export const deleteCompanyProduct = async (id) => {
 export const getCompanyCustomers = async (companyId) => {
   const { data, error } = await supabase
     .from('consent_requests')
-    .select('*, products(name, amount), subscriptions(id)')
+    .select('*, products(name, amount), subscriptions(id, users(withdrawn_at))')
     .eq('company_id', companyId)
     .order('created_at', { ascending: false });
   if (error) throw error;

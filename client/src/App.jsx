@@ -35,6 +35,7 @@ import CompanyProfile from './pages/company/CompanyProfile';
 import CompanyTaxInvoices from './pages/company/CompanyTaxInvoices';
 import ConsentPage from './pages/ConsentPage';
 import ComingSoon from './pages/ComingSoon';
+import Features from './pages/Features';
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/consent/:token" element={<ConsentPage />} />
         <Route path="/coming-soon" element={<ComingSoon />} />
+        <Route path="/features" element={<Features />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />

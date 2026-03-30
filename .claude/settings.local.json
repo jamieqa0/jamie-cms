@@ -55,7 +55,8 @@
       "Bash(/c/Users/이유미/Documents/study/jamie-cms/jamie-cms/server/supabase/schema.sql:*)",
       "Bash(grep -n \"CREATE TABLE subscriptions\\\\|CREATE TABLE billing_logs\\\\|CREATE TABLE transactions\" /c/Users/이유미/Documents/study/jamie-cms/jamie-cms/supabase/migrations/*.sql)",
       "Bash(grep:*)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(npx vite:*)"
     ]
   }
 }

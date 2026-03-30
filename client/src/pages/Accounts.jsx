@@ -6,18 +6,25 @@ export default function Accounts() {
   const [accounts, setAccounts] = useState([]);
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [error, setError] = useState('');
 
-  const load = () => getAccounts().then(r => setAccounts(r.data));
+  const load = () => getAccounts().then(r => setAccounts(r.data)).catch(() => {});
   useEffect(() => { load(); }, []);
 
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!newName.trim()) return;
     setCreating(true);
-    await createAccount(newName);
-    setNewName('');
-    await load();
-    setCreating(false);
+    setError('');
+    try {
+      await createAccount(newName);
+      setNewName('');
+      await load();
+    } catch (err) {
+      setError(err.message || '계좌 생성에 실패했습니다.');
+    } finally {
+      setCreating(false);
+    }
   };
 
   return (
@@ -35,9 +42,10 @@ export default function Accounts() {
           disabled={creating}
           className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition sm:w-auto w-full"
         >
-          계좌 개설
+          {creating ? '생성 중...' : '계좌 개설'}
         </button>
       </form>
+      {error && <p className="text-red-500 text-sm">{error}</p>}
       <div className="space-y-3">
         {accounts.map(a => (
           <Link key={a.id} to={`/accounts/${a.id}`}
