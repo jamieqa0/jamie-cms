@@ -44,7 +44,7 @@ export default function Invoices() {
           {unpaid.map(inv => (
             <div key={inv.id} className="flex justify-between items-center bg-white rounded-xl px-4 py-3 border border-red-100">
               <div>
-                <p className="text-slate-800 font-semibold text-sm">{inv.product_name}</p>
+                <p className="text-slate-900 font-semibold text-sm">{inv.product_name}</p>
                 <p className="text-slate-400 text-xs mt-0.5">{inv.company_name} · {new Date(inv.issued_at).toLocaleDateString('ko-KR')}</p>
               </div>
               <div className="text-right flex flex-col items-end gap-1">
@@ -72,7 +72,7 @@ export default function Invoices() {
               <li key={inv.id} className="flex justify-between items-center px-5 py-3.5 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-slate-800 font-semibold text-sm truncate">{inv.product_name}</p>
+                    <p className="text-slate-900 font-semibold text-sm truncate">{inv.product_name}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium border flex-shrink-0 ${INV_STATUS_COLOR[inv.status]}`}>
                       {INV_STATUS_LABEL[inv.status]}
                     </span>

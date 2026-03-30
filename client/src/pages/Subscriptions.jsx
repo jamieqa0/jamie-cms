@@ -78,7 +78,7 @@ function SubscriptionCard({ s, onToggle, onCancel }) {
       <div className="flex justify-between items-start">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="font-bold text-slate-900 truncate">{s.product_name}</p>
+            <p className="text-sm font-semibold text-slate-900 truncate">{s.product_name}</p>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium border flex-shrink-0 ${STATUS_COLOR_MAP[s.status]}`}>
               {STATUS_LABEL[s.status]}
             </span>
@@ -86,7 +86,7 @@ function SubscriptionCard({ s, onToggle, onCancel }) {
           {s.company_name && <p className="text-slate-400 text-xs mt-0.5">{s.company_name}</p>}
         </div>
         <div className="text-right ml-4 flex-shrink-0">
-          <p className="font-extrabold text-slate-900 tabular-nums">{Number(s.amount).toLocaleString()}원</p>
+          <p className="text-sm font-bold text-slate-900 tabular-nums">{Number(s.amount).toLocaleString()}원</p>
           <p className="text-slate-400 text-xs mt-0.5">매월 {s.billing_day}일</p>
         </div>
       </div>

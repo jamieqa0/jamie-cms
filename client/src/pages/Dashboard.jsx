@@ -95,7 +95,7 @@ export default function Dashboard() {
             {recentInvoices.map(inv => (
               <li key={inv.id} className="flex justify-between items-center px-5 py-3.5 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition">
                 <div>
-                  <p className="text-slate-800 font-semibold text-sm">{inv.product_name}</p>
+                  <p className="text-slate-900 font-semibold text-sm">{inv.product_name}</p>
                   <p className="text-slate-400 text-xs mt-0.5">{inv.company_name} · {new Date(inv.issued_at).toLocaleDateString('ko-KR')}</p>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1">
@@ -126,7 +126,7 @@ export default function Dashboard() {
             {subscriptions.filter(s => s.status === 'active').map(s => (
               <li key={s.id} className="flex justify-between items-center px-5 py-3.5 border-b border-slate-50 last:border-0">
                 <div>
-                  <p className="text-slate-800 font-semibold text-sm">{s.product_name}</p>
+                  <p className="text-slate-900 font-semibold text-sm">{s.product_name}</p>
                   {s.company_name && <p className="text-slate-400 text-xs mt-0.5">{s.company_name}</p>}
                 </div>
                 <div className="text-right">

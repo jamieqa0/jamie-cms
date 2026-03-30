@@ -34,6 +34,7 @@ import CompanyUnpaid from './pages/company/CompanyUnpaid';
 import CompanyProfile from './pages/company/CompanyProfile';
 import CompanyTaxInvoices from './pages/company/CompanyTaxInvoices';
 import ConsentPage from './pages/ConsentPage';
+import ComingSoon from './pages/ComingSoon';
 
 export default function App() {
   return (
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/consent/:token" element={<ConsentPage />} />
+        <Route path="/coming-soon" element={<ComingSoon />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />

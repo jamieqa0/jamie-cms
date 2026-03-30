@@ -45,7 +45,12 @@ export default function ProductDetail() {
 
   return (
     <div className="max-w-lg space-y-6">
-      <h1 className="text-2xl font-bold text-slate-900">{product.name}</h1>
+      <div className="space-y-1">
+        {product.company?.nickname && (
+          <p className="text-sm font-medium text-blue-600">{product.company.nickname}</p>
+        )}
+        <h1 className="text-2xl font-bold text-slate-900">{product.name}</h1>
+      </div>
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-3">
         <div className="flex justify-between">
           <span className="text-slate-500">월 결제금액</span>

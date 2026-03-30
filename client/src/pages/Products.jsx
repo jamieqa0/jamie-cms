@@ -45,18 +45,27 @@ export default function Products() {
         {filtered.map(p => (
           <Link key={p.id} to={`/products/${p.id}`}
             className="block bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:border-blue-300 hover:shadow-md transition">
-            <div className="flex justify-between items-start">
-              <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start text-sm mb-1.5 flex-wrap gap-1">
+              <div className="flex items-center gap-1.5">
                 {p.category && (
                   <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full font-medium">
                     {CATEGORY_LABEL[p.category] || p.category}
                   </span>
                 )}
-                <p className="font-bold text-slate-900 mt-1">{p.name}</p>
+                {p.company?.nickname && (
+                  <span className="text-slate-400 font-medium">
+                    {p.company.nickname}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-between items-start">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-900">{p.name}</p>
                 {p.description && <p className="text-slate-500 text-sm mt-0.5 truncate">{p.description}</p>}
               </div>
               <div className="text-right ml-4 flex-shrink-0">
-                <p className="font-extrabold text-slate-900 tabular-nums">{Number(p.amount).toLocaleString()}원</p>
+                <p className="text-sm font-bold text-slate-900 tabular-nums">{Number(p.amount).toLocaleString()}원</p>
                 <p className="text-slate-400 text-xs mt-0.5">매월 {p.billing_day}일</p>
               </div>
             </div>

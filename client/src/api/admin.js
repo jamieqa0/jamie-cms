@@ -14,7 +14,7 @@ export const getAdminTransfers = async () => {
 export const getAdminProducts = async () => {
   const { data, error } = await supabase
     .from('products')
-    .select('*')
+    .select('*, company:users!company_id(nickname)')
     .order('created_at', { ascending: false });
   if (error) throw error;
   return { data };
@@ -23,7 +23,7 @@ export const getAdminProducts = async () => {
 export const getAdminProduct = async (id) => {
   const { data } = await supabase
     .from('products')
-    .select('*')
+    .select('*, company:users!company_id(nickname)')
     .eq('id', id)
     .single();
   return { data };

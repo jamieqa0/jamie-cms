@@ -31,8 +31,9 @@ export default function CompanyProducts() {
       </div>
 
       {/* 데스크탑 테이블 */}
-      <div className="hidden sm:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="hidden sm:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[400px] text-sm">
           <thead className="border-b border-slate-100">
             <tr className="text-slate-500 text-left">
               <th className="px-5 py-3 font-medium">상품명</th>
@@ -60,6 +61,7 @@ export default function CompanyProducts() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* 모바일 카드 */}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { supabase } from '../../lib/supabase';
+import { calculateCommission } from '../../utils/commissionUtils';
 
 function StatementModal({ inv, companyName, onClose }) {
   if (!inv) return null;
@@ -124,9 +125,7 @@ export default function CompanyTaxInvoices() {
 
       const list = Object.keys(monthlyData).sort().reverse().map(monthKey => {
         const { totalAmount, count } = monthlyData[monthKey];
-        const totalCommission = Math.floor(totalAmount * (rate / 100));
-        const supply = Math.floor(totalCommission / 1.1);
-        const vat = totalCommission - supply;
+        const { commission: totalCommission, supply, vat } = calculateCommission(totalAmount, rate);
         return { month: monthKey, count, totalAmount, commission: totalCommission, supply, vat, rate, status: '발급 완료' };
       });
 
@@ -144,7 +143,7 @@ export default function CompanyTaxInvoices() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">수수료 세금계산서</h1>
-          <p className="text-slate-500 mt-1">제이미 정기납부 메이트 이용 수수료에 대한 매입 세금계산서 발급 내역입니다.</p>
+          <p className="text-slate-500 mt-1">Jamie 이용 수수료에 대한 매입 세금계산서 발급 내역입니다.</p>
         </div>
         <div className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-lg text-sm font-medium">
           적용 수수료율: {companyInfo?.rate}%
@@ -157,7 +156,8 @@ export default function CompanyTaxInvoices() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <table className="w-full text-left text-sm whitespace-nowrap">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px] text-left text-sm whitespace-nowrap">
             <thead className="bg-slate-50 text-slate-600 border-b border-slate-100">
               <tr>
                 <th className="px-6 py-4 font-semibold">청구 월</th>
@@ -194,6 +194,7 @@ export default function CompanyTaxInvoices() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

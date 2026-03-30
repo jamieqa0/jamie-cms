@@ -108,8 +108,9 @@ export default function AdminCompanies() {
           + 업체 등록
         </Link>
       </div>
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[620px] text-sm">
           <thead className="border-b border-slate-100">
             <tr className="text-slate-500 text-left">
               <th className="px-5 py-3 font-medium">업체명</th>
@@ -143,7 +144,9 @@ export default function AdminCompanies() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
+
 
       {editTarget && (
         <EditModal

@@ -24,10 +24,11 @@ export default function AdminProducts() {
       </div>
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[580px] text-sm">
           <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
             <tr>
               <th className="px-4 py-3 text-left">상품명</th>
+              <th className="px-4 py-3 text-left">업체명</th>
               <th className="px-4 py-3 text-left">카테고리</th>
               <th className="px-4 py-3 text-right">금액</th>
               <th className="px-4 py-3 text-center">결제일</th>
@@ -39,6 +40,7 @@ export default function AdminProducts() {
             {products.map(p => (
               <tr key={p.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3 font-medium text-slate-900">{p.name}</td>
+                <td className="px-4 py-3 text-slate-600 font-medium">{p.company?.nickname}</td>
                 <td className="px-4 py-3 text-slate-500">{p.category}</td>
                 <td className="px-4 py-3 text-right font-medium">{Number(p.amount).toLocaleString()}원</td>
                 <td className="px-4 py-3 text-center text-slate-500">매월 {p.billing_day}일</td>

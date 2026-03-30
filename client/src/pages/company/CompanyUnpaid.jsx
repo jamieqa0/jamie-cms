@@ -88,8 +88,9 @@ export default function CompanyUnpaid() {
           </button>
         )}
       </div>
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[650px] text-sm">
           <thead className="border-b border-slate-100">
             <tr className="text-slate-500 text-left">
               <th className="px-5 py-3">
@@ -140,6 +141,7 @@ export default function CompanyUnpaid() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

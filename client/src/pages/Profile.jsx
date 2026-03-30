@@ -43,7 +43,7 @@ export default function Profile() {
 
       {/* 사용자 정보 */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-        <h2 className="font-semibold text-slate-900 mb-5">사용자 정보</h2>
+        <h2 className="font-bold text-slate-900 mb-5">사용자 정보</h2>
         <form onSubmit={handleSave} className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-slate-700">닉네임</label>
@@ -73,7 +73,7 @@ export default function Profile() {
       {/* 내 계좌 */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
         <div className="flex justify-between items-center mb-5">
-          <h2 className="font-semibold text-slate-900">내 계좌</h2>
+          <h2 className="font-bold text-slate-900">내 계좌</h2>
           <Link to="/accounts" className="text-blue-500 text-xs font-medium hover:underline">계좌 관리 →</Link>
         </div>
         {personalAccounts.length === 0 ? (

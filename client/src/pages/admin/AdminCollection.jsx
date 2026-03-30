@@ -63,7 +63,7 @@ export default function AdminCollection() {
           <p className="text-slate-400 text-sm p-6">정산 내역이 없습니다.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[700px] text-sm">
               <thead className="bg-slate-50 text-slate-500">
                 <tr>
                   <th className="px-5 py-3 text-left font-medium">업체명</th>
