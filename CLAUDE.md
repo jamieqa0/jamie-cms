@@ -18,7 +18,12 @@ cd client
 npm run dev        # Vite 개발 서버 (포트 5173)
 npm run build      # 프로덕션 빌드
 npm run lint       # ESLint
+npx vitest         # 테스트 실행 (watch 모드)
+npx vitest run     # 테스트 단회 실행
+npx vitest run src/utils/chartUtils.test.js  # 단일 파일 실행
 ```
+
+테스트 파일: `src/utils/*.test.js` (vitest + jsdom, `@testing-library/react` 사용)
 
 Edge Function 배포:
 ```bash
@@ -94,6 +99,8 @@ await supabase.auth.setSession({ access_token: adminSession.access_token, refres
 - `run_auto_debit` RPC: Supabase Edge Function에서 호출 (`supabase/functions/auto-debit/index.ts`)
 - 잠금 순서: 유저계좌 → 집금계좌 → 업체계좌 (데드락 방지)
 - 멱등성: 오늘 이미 `success`인 `billing_logs`가 있으면 스킵
+- 동시 실행 방지: `pg_advisory_xact_lock(hashtext('run_auto_debit'))` — 연속 클릭 시 중복 청구 방지 (migration 031)
+- `get_collection_stats`: `p_month DATE` 파라미터로 월별 조회 가능 (NULL이면 당월)
 
 ### 라우팅 구조 (`client/src/App.jsx`)
 
@@ -106,7 +113,7 @@ await supabase.auth.setSession({ access_token: adminSession.access_token, refres
     /dashboard, /products, /accounts, /subscriptions, /invoices, /profile
   (AdminRoute)
     (AdminLayout)
-      /admin, /admin/companies, /admin/transfers, /admin/collection
+      /admin, /admin/companies, /admin/transfers, /admin/collection, /admin/users
   (CompanyRoute)
     (CompanyLayout)
       /company, /company/products, /company/customers, /company/transfers,
@@ -138,6 +145,8 @@ await supabase.auth.setSession({ access_token: adminSession.access_token, refres
 **companies 테이블**: `user_id(PK) → users`, `industry`, `commission_rate`
 
 **consent_requests**: 업체가 고객에게 보내는 동의 요청. `invite_token`으로 공유, `status`: pending → accepted/rejected
+
+**billing_logs.status**: `success` | `failed` | `retried` — 재청구 성공 시 원래 `failed` 로그를 `retried`로 UPDATE. `get_company_unpaid`는 `status = 'failed'`만 조회하므로 retried 로우는 자동 제외.
 
 ## Supabase SQL 주의사항
 
@@ -172,3 +181,5 @@ WHERE u.role = 'company'
 - 에러 응답 형식: `{ "error": "메시지" }`
 - 컴포넌트는 함수형만 사용
 - 전역 상태는 Zustand(`authStore`)만 사용
+- `@` import alias → `src/` (예: `import { supabase } from '@/lib/supabase'`)
+- 아이콘: `lucide-react`, 차트: `recharts`
