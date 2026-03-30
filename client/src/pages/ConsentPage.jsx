@@ -273,6 +273,16 @@ export default function ConsentPage() {
             )}
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
+            <p className="text-xs text-slate-400 text-center leading-relaxed">
+              동의 시{' '}
+              <button onClick={() => alert('서비스 이용약관 준비 중입니다.')} className="underline underline-offset-2 hover:text-slate-600 transition">이용약관</button>
+              {' '}및{' '}
+              <button onClick={() => alert('개인정보 처리방침 준비 중입니다.')} className="underline underline-offset-2 hover:text-slate-600 transition">개인정보 처리방침</button>
+              {' '}및{' '}
+              <button onClick={() => alert('자동이체 출금 동의서 준비 중입니다.')} className="underline underline-offset-2 hover:text-slate-600 transition">자동이체 출금 동의서</button>
+              에 동의한 것으로 간주합니다.{' '}
+              <span className="text-slate-300">(준비중)</span>
+            </p>
             <button
               onClick={handleAccept}
               disabled={submitting || paymentMethod !== 'account' || accounts.length === 0}

@@ -5,9 +5,10 @@ import { getAccounts } from '../api/accounts';
 import { createSubscription } from '../api/subscriptions';
 
 const PAYMENT_METHODS = [
-  { value: 'account', label: '계좌이체', available: true },
-  { value: 'card', label: '신용카드', available: false },
-  { value: 'phone', label: '휴대폰 결제', available: false },
+  { value: 'account', label: '계좌이체', icon: '🏦', available: true },
+  { value: 'card',    label: '카드',     icon: '💳', available: false },
+  { value: 'phone',   label: '휴대폰결제', icon: '📱', available: false },
+  { value: 'pay',     label: '간편페이',  icon: '⚡', available: false },
 ];
 
 export default function ProductDetail() {
@@ -61,31 +62,38 @@ export default function ProductDetail() {
 
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-4">
         <h2 className="font-semibold text-slate-900">결제수단 선택</h2>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {PAYMENT_METHODS.map(m => (
             <button
               key={m.value}
               onClick={() => m.available && setPaymentMethod(m.value)}
-              disabled={!m.available}
-              className={`py-2.5 rounded-lg text-sm font-medium border transition
-                ${!m.available
-                  ? 'border-slate-100 text-slate-300 bg-slate-50 cursor-not-allowed'
-                  : paymentMethod === m.value
-                    ? 'border-slate-900 bg-slate-900 text-white'
-                    : 'border-slate-200 text-slate-700 hover:border-slate-400'
-                }`}
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition ${
+                m.available && paymentMethod === m.value
+                  ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                  : 'border-slate-200 text-slate-500 hover:border-slate-300'
+              }`}
             >
-              {m.label}
-              {!m.available && <span className="block text-xs font-normal">준비 중</span>}
+              <span>{m.icon}</span>
+              <span>{m.label}</span>
+              {!m.available && (
+                <span className="ml-auto text-xs text-slate-300">준비중</span>
+              )}
             </button>
           ))}
         </div>
 
         {paymentMethod === 'account' && (
-          <div className="space-y-2">
-            <p className="text-sm text-slate-500">출금 계좌</p>
+          accounts.length === 0 ? (
+            <div className="text-center space-y-3">
+              <p className="text-sm text-red-500">등록된 계좌가 없습니다.</p>
+              <a href="/accounts"
+                className="inline-block w-full bg-slate-800 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-700 transition text-center">
+                계좌 등록하러 가기 →
+              </a>
+            </div>
+          ) : (
             <select
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
               value={selectedAccount}
               onChange={e => setSelectedAccount(e.target.value)}
             >
@@ -96,13 +104,29 @@ export default function ProductDetail() {
                 </option>
               ))}
             </select>
+          )
+        )}
+
+        {paymentMethod !== 'account' && (
+          <div className="bg-slate-50 rounded-xl px-4 py-3 text-center text-sm text-slate-400">
+            해당 결제수단은 현재 준비 중입니다.
           </div>
         )}
 
+        <p className="text-xs text-slate-400 text-center leading-relaxed">
+          구독 신청 시{' '}
+          <button onClick={() => alert('서비스 이용약관 준비 중입니다.')} className="underline underline-offset-2 hover:text-slate-600 transition">이용약관</button>
+          {' '}및{' '}
+          <button onClick={() => alert('개인정보 처리방침 준비 중입니다.')} className="underline underline-offset-2 hover:text-slate-600 transition">개인정보 처리방침</button>
+          {' '}및{' '}
+          <button onClick={() => alert('자동이체 출금 동의서 준비 중입니다.')} className="underline underline-offset-2 hover:text-slate-600 transition">자동이체 출금 동의서</button>
+          에 동의한 것으로 간주합니다.{' '}
+          <span className="text-slate-300">(준비중)</span>
+        </p>
         <button
           onClick={handleSubscribe}
-          disabled={loading}
-          className="w-full bg-slate-900 text-white py-2.5 rounded-lg font-medium hover:bg-slate-700 transition disabled:opacity-50"
+          disabled={loading || paymentMethod !== 'account' || accounts.length === 0}
+          className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition disabled:opacity-50"
         >
           {loading ? '처리 중...' : '구독 신청'}
         </button>
