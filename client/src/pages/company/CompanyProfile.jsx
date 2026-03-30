@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
-import { getMyCompany } from '../../api/company';
-import { getAccounts, getAccount } from '../../api/accounts';
+import { getMyCompany, getCompanyAccount } from '../../api/company';
+import { getAccount } from '../../api/accounts';
 
 export default function CompanyProfile() {
   const { user } = useAuthStore();
@@ -11,15 +11,15 @@ export default function CompanyProfile() {
   useEffect(() => {
     if (!user?.id) return;
     getMyCompany(user.id).then(setCompany).catch(() => {});
-    getAccounts().then(r => {
-      const acc = (r.data ?? []).find(a => a.type === 'company');
-      if (acc) getAccount(acc.id).then(res => setCompanyAccount(res.data)).catch(() => {});
-    });
+    getCompanyAccount(user.id)
+      .then(acc => getAccount(acc.id))
+      .then(res => setCompanyAccount(res.data))
+      .catch(() => {});
   }, [user?.id]);
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-slate-900">업체 정보 / 정산</h1>
+      <h1 className="text-2xl font-bold text-slate-900">{user?.nickname}</h1>
 
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
         <h2 className="font-semibold text-slate-900 mb-3">업체 정보</h2>

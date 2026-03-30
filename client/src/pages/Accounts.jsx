@@ -23,7 +23,7 @@ export default function Accounts() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-slate-900">내 계좌</h1>
-      <form onSubmit={handleCreate} className="flex gap-2">
+      <form onSubmit={handleCreate} className="flex flex-col sm:flex-row gap-2">
         <input
           className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm"
           placeholder="계좌 이름 (예: 생활비 계좌)"
@@ -33,7 +33,7 @@ export default function Accounts() {
         <button
           type="submit"
           disabled={creating}
-          className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition"
+          className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition sm:w-auto w-full"
         >
           계좌 개설
         </button>

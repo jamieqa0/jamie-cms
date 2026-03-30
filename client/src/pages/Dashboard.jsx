@@ -38,7 +38,7 @@ export default function Dashboard() {
       </div>
 
       {/* 핵심 수치 카드 */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
           <p className="text-slate-400 text-xs font-medium uppercase tracking-wide">월 납부액</p>
           <p className="text-3xl font-extrabold text-slate-900 mt-1 tabular-nums">

@@ -60,9 +60,9 @@ export default function CompanyCustomers() {
               <th className="px-5 py-3 font-medium">고객명</th>
               <th className="px-5 py-3 font-medium">연락처</th>
               <th className="px-5 py-3 font-medium">상품</th>
-              <th className="px-5 py-3 font-medium">상태</th>
+              <th className="px-5 py-3 font-medium">동의 여부</th>
               <th className="px-5 py-3 font-medium">동의 링크</th>
-              <th className="px-5 py-3 font-medium"></th>
+              <th className="px-5 py-3 font-medium">청구서 발행</th>
             </tr>
           </thead>
           <tbody>
