@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { getProduct } from '../api/products';
 import { getAccounts } from '../api/accounts';
-import { createSubscription } from '../api/subscriptions';
+import { createSubscription, getSubscriptions } from '../api/subscriptions';
 
 const PAYMENT_METHODS = [
   { value: 'account', label: '계좌이체', icon: '🏦', available: true },
