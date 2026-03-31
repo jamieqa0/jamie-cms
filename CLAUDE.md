@@ -21,9 +21,10 @@ npm run lint       # ESLint
 npx vitest         # 테스트 실행 (watch 모드)
 npx vitest run     # 테스트 단회 실행
 npx vitest run src/utils/chartUtils.test.js  # 단일 파일 실행
+npx vitest run --coverage                  # 커버리지 리포트
 ```
 
-테스트 파일: `src/utils/*.test.js`, `src/api/*.test.js` (vitest + jsdom, `@testing-library/react` 사용)
+테스트 파일: `src/utils/*.test.js`, `src/api/*.test.js`, `src/utils/routeGuards.test.jsx` (vitest + jsdom, `@testing-library/react` 사용)
 
 Edge Function 배포:
 ```bash
@@ -146,6 +147,15 @@ await supabase.auth.setSession({ access_token: adminSession.access_token, refres
 
 모든 Supabase 호출은 `client/src/lib/supabase.js`의 단일 인스턴스 사용. 컴포넌트에서 직접 supabase 호출 금지 (api/ 함수 경유). 단, `CompanyTaxInvoices.jsx`는 집계 쿼리 특성상 예외적으로 직접 호출.
 
+`api/client.js`는 과거 axios 클라이언트 자리에서 supabase를 re-export하는 shim — 삭제하지 말 것 (일부 파일이 참조할 수 있음).
+
+**API 에러 throw 패턴**: Supabase 에러 발생 시 axios 호환 형식으로 throw — 컴포넌트에서 `e.response?.data?.error`로 읽음.
+```js
+if (error) throw { response: { data: { error: error.message } } };
+```
+
+**테스트 mock 패턴**: `vi.mock('../lib/supabase', () => { ... })` 로 supabase를 모킹. builder 체인(`select → eq → order` 등)을 `vi.fn().mockReturnThis()`로 구성하고, 터미널 메서드(`order`, `single` 등)에서 `mockResolvedValue`로 응답 주입.
+
 ### 주요 컴포넌트
 
 | 파일 | 용도 |
@@ -154,7 +164,7 @@ await supabase.auth.setSession({ access_token: adminSession.access_token, refres
 | `ReceiptModal.jsx` | 현금영수증 모달 (국세청 스타일, 인쇄/PDF 지원) — `invoice.status === 'paid'`일 때만 렌더 |
 | `ProtectedRoute.jsx` | 로그인 여부 체크 |
 | `AdminRoute.jsx` | admin role 체크 |
-| `CompanyRoute.jsx` | company role 체크 |
+| `CompanyRoute.jsx` | company role 체크 (admin도 접근 허용) |
 | `AppNav.jsx` | 유저용 상단 네비게이션 |
 | `Footer.jsx` | 공통 푸터 (모든 레이아웃에 적용) |
 
@@ -165,6 +175,8 @@ await supabase.auth.setSession({ access_token: adminSession.access_token, refres
 | `chartUtils.js` | recharts용 데이터 변환 |
 | `transactionUtils.js` | `groupByDate()` — 거래내역 날짜별 그룹핑 (`created_at` 또는 `executed_at` 기준) |
 | `commissionUtils.js` | 수수료 계산 |
+
+`lib/utils.js`의 `cn()` — clsx + tailwind-merge 조합. shadcn/Base UI 컴포넌트에서 조건부 클래스 병합에 사용.
 
 ## DB Schema
 
